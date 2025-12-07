@@ -222,6 +222,92 @@
             outline: none;
             resize: none;
         }
+
+        /* ===============================
+   RESPONSIVE UI (SAFE MODE)
+   =============================== */
+
+/* Tablets & small laptops */
+@media (max-width: 1024px) {
+    #chart {
+        width: 480px;
+        height: 480px;
+    }
+
+    #planet-table,
+    #dashaBox {
+        width: 100%;
+    }
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+
+    body {
+        padding: 6px;
+    }
+
+    #formbar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+    }
+
+    #formbar input,
+    #formbar select,
+    #formbar textarea,
+    #formbar button {
+        width: 100%;
+        font-size: 14px;
+    }
+
+    #container {
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    #chart {
+        width: 95vw;
+        height: 95vw;
+        max-width: 360px;
+        max-height: 360px;
+    }
+
+    .chart-box {
+        font-size: 12px;
+        padding: 4px;
+    }
+
+    #center-label {
+        font-size: 16px;
+    }
+
+    #planet-table {
+        width: 100%;
+        font-size: 12px;
+    }
+
+    #dashaBox {
+        width: 100%;
+    }
+
+    #transitPanel {
+        flex-direction: column;
+    }
+
+    #transitHistory {
+        max-width: 100%;
+        border-left: none;
+        border-top: 1px solid #ddd;
+    }
+
+    .modal-content {
+        width: 95%;
+        max-height: 85vh;
+    }
+}
+
     </style>
 </head>
 <body>
@@ -988,6 +1074,7 @@ function saveChart() {
 
 </body>
         </html>
+
 
 
 
