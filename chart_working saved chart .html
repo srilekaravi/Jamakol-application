@@ -1,0 +1,991 @@
+﻿<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="utf-8">
+    <title>ஜாதகக் கட்டம்</title>
+    <style>
+        body {
+            font-family: "Noto Sans Tamil", sans-serif;
+            background: #fffef8;
+            color: #222;
+            margin: 0;
+            padding: 10px;
+        }
+        #chartSearch {
+            outline: none;
+            transition: box-shadow 0.2s ease;
+        }
+
+            #chartSearch:focus {
+                box-shadow: 0 0 4px #ff9800;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #formbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+            #formbar input, #formbar select {
+                padding: 4px 6px;
+                font-size: 13px;
+            }
+
+        #place {
+            min-width: 220px;
+        }
+
+        button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background: #e68900;
+            }
+
+        #container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        #chart {
+            width: 600px;
+            height: 600px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 2px;
+            border: 3px solid #000;
+            background: #fff;
+            position: relative;
+        }
+
+        .chart-box {
+            border: 1px solid #000;
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        #planet-table {
+            border-collapse: collapse;
+            width: 420px;
+            font-size: 13px;
+        }
+
+            #planet-table th, #planet-table td {
+                border: 1px solid #999;
+                padding: 4px;
+                text-align: center;
+            }
+
+            #planet-table th {
+                background: #ffb84d;
+            }
+
+        #center-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: darkgreen;
+            font-size: 22px;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 700px; /* was 420px */
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+
+
+        .modal h3 {
+            margin-top: 0;
+        }
+
+        .modal table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .modal th, .modal td {
+            border: 1px solid #ccc;
+            padding: 4px;
+            text-align: center;
+        }
+
+        .modal button {
+            margin: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>ஜாதகக் கட்டம் (South Indian Style)</h2>
+
+    <div id="formbar">
+        <input id="name" type="text" placeholder="பெயர்">
+        <input id="date" type="date">
+        <div>
+            <input id="time" type="time" step="1">
+            <input id="seconds" type="number" min="0" max="59" value="0" style="width:50px;">
+        </div>
+        <select id="place"></select>
+        <select id="ayanamsa">
+            <option value="lahiri">Lahiri</option>
+            <option value="raman">Raman</option>
+            <option value="kp">KP</option>
+            <option value="yukteshwar">Yukteshwar</option>
+        </select>
+        <select id="chartType">
+            <option value="rasi">ராசி</option>
+            <option value="d9">D9 - நவம்சம்</option>
+            <option value="d10">D10 - தசம்சம்</option>
+            <option value="d7">D7 - ஸப்தம்சம்</option>
+        </select>
+        <!-- 🆕 Optional extra fields -->
+        <select id="gender">
+            <option value="">பாலினம் (Gender)</option>
+            <option value="Male">ஆண் (Male)</option>
+            <option value="Female">பெண் (Female)</option>
+            <option value="Other">மற்றவை (Other)</option>
+        </select>
+
+        <select id="tag">
+            <option value="">வகை (Tag)</option>
+            <option value="Client">வாடிக்கையாளர் (Client)</option>
+            <option value="Family">குடும்பம் (Family)</option>
+            <option value="Friend">நண்பர் (Friend)</option>
+            <option value="Other">மற்றவை (Other)</option>
+        </select>
+
+        <textarea id="comment" rows="2" placeholder="குறிப்புகள் / Notes (optional)"></textarea>
+
+        <button onclick="openAddPlace()">+ Add Place</button>
+        <button onclick="saveChart()">💾 Save</button>
+        <button onclick="openSavedCharts()">📂 View Saved</button>
+    </div>
+
+    <div id="container">
+        <div style="position: relative;">
+            <div id="chart"></div>
+            <div id="center-label">ராசி</div>
+        </div>
+        <div id="tableWrap"></div>
+    </div>
+
+    <!-- Saved Charts Modal -->
+    <!-- Saved Charts Modal -->
+    <div class="modal" id="savedModal">
+        <div class="modal-content" style="width: 700px;">
+            <h3>📁 சேமிக்கப்பட்ட ஜாதகங்கள்</h3>
+            
+                   
+            <div id="savedList">Loading...</div>
+            <button onclick="closeModal('savedModal')">Close</button>
+        </div>
+    </div>
+
+
+    <!-- Add Place Modal -->
+    <div class="modal" id="addPlaceModal">
+        <div class="modal-content">
+            <h3>புதிய இடம் சேர்க்க</h3>
+            <input id="pCity" placeholder="City"><br>
+            <input id="pState" placeholder="State"><br>
+            <input id="pCountry" placeholder="Country"><br>
+            <input id="pLat" placeholder="Latitude"><br>
+            <input id="pLon" placeholder="Longitude"><br>
+            <input id="pTz" placeholder="Timezone (e.g., 5.5)"><br><br>
+            <button onclick="addPlace()">Save Place</button>
+            <button onclick="closeModal('addPlaceModal')">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_PLACE = { city: "Chennai", lat: 13.0827, lon: 80.2707, tz: 5.5 };
+        const planetColors = {
+            "சூரியன்": "#e67e22", "சந்திரன்": "#3498db", "செவ்வாய்": "#ff4d4d",
+            "புதன்": "#27ae60", "குரு": "#f1c40f", "சுக்கிரன்": "#f78fb3",
+            "சனி": "#2c3e50", "ராகு": "#8e44ad", "கேது": "#95a5a6",
+            "மாந்தி": "#34495e", "லக்னம்": "#ff7f00"
+        };
+
+        async function loadPlaces() {
+            const res = await fetch("/list_places");
+            const places = await res.json();
+
+            // Build or reuse datalist
+            let input = document.getElementById("placeSearch");
+            if (!input) {
+                input = document.createElement("input");
+                input.id = "placeSearch";
+                input.setAttribute("list", "placesList");
+                input.setAttribute("placeholder", "Type city name...");
+                input.style.width = "200px";
+            }
+
+            let dataList = document.getElementById("placesList");
+            if (!dataList) {
+                dataList = document.createElement("datalist");
+                dataList.id = "placesList";
+                document.body.appendChild(dataList);
+            }
+            dataList.innerHTML = "";
+
+            places.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = `${p.city_en} / ${p.city}`;
+                opt.setAttribute("data-lat", p.lat);
+                opt.setAttribute("data-lon", p.lon);
+                opt.setAttribute("data-tz", p.tz);
+                dataList.appendChild(opt);
+            });
+
+            // Replace #place only once
+            const sel = document.getElementById("place");
+            if (sel && !document.getElementById("placeSearch")) {
+                sel.parentNode.replaceChild(input, sel);
+            }
+
+            // Auto-fill default Chennai if found
+            input.value = "Chennai / சென்னை";
+            const match = [...dataList.options].find(o => o.value.startsWith("Chennai"));
+            if (match) {
+                input.setAttribute("data-lat", match.getAttribute("data-lat"));
+                input.setAttribute("data-lon", match.getAttribute("data-lon"));
+                input.setAttribute("data-tz", match.getAttribute("data-tz"));
+            }
+
+            // Trigger chart immediately and when typing
+            input.addEventListener("input", e => {
+                const val = e.target.value;
+                const match = [...dataList.options].find(o =>
+                    o.value.toLowerCase().startsWith(val.toLowerCase())
+                );
+                if (match) {
+                    input.setAttribute("data-lat", match.getAttribute("data-lat"));
+                    input.setAttribute("data-lon", match.getAttribute("data-lon"));
+                    input.setAttribute("data-tz", match.getAttribute("data-tz"));
+                    generateChart();
+                }
+            });
+
+            generateChart();
+        }
+
+        function addAutoUpdateListeners() {
+            const ids = ["date", "time", "seconds", "ayanamsa", "chartType", "placeSearch"];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener("change", generateChart);
+                    el.addEventListener("input", generateChart);
+                }
+            });
+        }
+
+        window.addEventListener("load", () => {
+            loadPlaces();
+            addAutoUpdateListeners();
+            const now = new Date();
+            document.getElementById("date").value = now.toISOString().slice(0, 10);
+            document.getElementById("time").value = now.toTimeString().slice(0, 8);
+            document.getElementById("seconds").value = now.getSeconds();
+        });
+
+        function generateChart() {
+            const dateVal = document.getElementById("date").value;
+            const timeVal = document.getElementById("time").value;
+            const seconds = parseInt(document.getElementById("seconds").value || 0);
+            const placeInput = document.getElementById("placeSearch");
+            const place = {
+                lat: parseFloat(placeInput.getAttribute("data-lat")) || DEFAULT_PLACE.lat,
+                lon: parseFloat(placeInput.getAttribute("data-lon")) || DEFAULT_PLACE.lon,
+                tz: parseFloat(placeInput.getAttribute("data-tz")) || DEFAULT_PLACE.tz
+            };
+            const ayanamsa = document.getElementById("ayanamsa").value;
+            const chartType = document.getElementById("chartType").value;
+            if (!dateVal) return;
+
+            const [year, month, day] = dateVal.split("-").map(x => parseInt(x));
+            const [hour, minute] = timeVal.split(":").map(x => parseInt(x));
+            const payload = {
+                year, month, day, hour, minute, second: seconds,
+                lat: place.lat, lon: place.lon, tz: place.tz,
+                ayanamsa, chartType
+            };
+
+            fetch("/generate_chart", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(res => {
+                if (res.status === "ok") {
+                    renderChart(res.rows);
+                    const labelMap = {
+                        rasi: "🪐 Rasi Chart Planets",
+                        d9: "🪐 Navamsa (D9) Planets",
+                        d10: "🪐 Dasamsa (D10) Planets",
+                        d7: "🪐 Saptamsa (D7) Planets"
+                    };
+                    document.getElementById("tableWrap").innerHTML =
+                        `<h4>${labelMap[chartType]}</h4>` + res.html;
+                    updateCenterLabel();
+                }
+            });
+        }
+
+        function renderChart(rows) {
+            const tamilRasis = ["மேஷம்", "ரிஷபம்", "மிதுனம்", "கடகம்", "சிம்மம்", "கன்னி",
+                "துலாம்", "விருச்சிகம்", "தனுசு", "மகரம்", "கும்பம்", "மீனம்"];
+            const grid = {}; tamilRasis.forEach(r => grid[r] = []);
+            let lagnaRasi = null;
+
+            rows.forEach(r => {
+                if (!r.name || r.name === "ராசி") return;
+                const color = planetColors[r.name] || "#000";
+                if (r.name === "லக்னம்") lagnaRasi = r.rasi;
+                const label = r.grid_label || `(${r.name})`;
+                let shortDeg = "";
+                if (r.dms && r.dms.includes(":")) {
+                    const [d, m] = r.dms.split(":");
+                    shortDeg = `${parseInt(d)}°${parseInt(m)}'`;
+                }
+                grid[r.rasi].push(
+                    `<span style='color:${color};font-weight:bold;'>${label}</span>` +
+                    (shortDeg ? `<small>${shortDeg}</small>` : "")
+                );
+            });
+
+            const order = ["மீனம்", "மேஷம்", "ரிஷபம்", "மிதுனம்",
+                "கும்பம்", null, null, "கடகம்",
+                "மகரம்", null, null, "சிம்மம்",
+                "தனுசு", "விருச்சிகம்", "துலாம்", "கன்னி"];
+
+            const chart = document.getElementById("chart");
+            chart.innerHTML = "";
+            order.forEach(r => {
+                if (r === null) chart.innerHTML += "<div></div>";
+                else {
+                    const hl = (r === lagnaRasi);
+                    chart.innerHTML += `
+                                <div class='chart-box'
+                                     style='background:${hl ? "#fff8e1" : "#fff"};
+                                            border-color:${hl ? "#ff9800" : "#000"};'>
+                                    ${grid[r].join("<br>")}
+                                </div>`;
+                }
+            });
+        }
+
+        function updateCenterLabel() {
+            const type = document.getElementById("chartType").value;
+            const label = document.getElementById("center-label");
+            label.style.opacity = "0";
+            setTimeout(() => {
+                switch (type) {
+                    case "rasi": label.textContent = "ராசி"; break;
+                    case "d9": label.textContent = "நவம்சம் (D9)"; break;
+                    case "d10": label.textContent = "தசம்சம் (D10)"; break;
+                    case "d7": label.textContent = "ஸப்தம்சம் (D7)"; break;
+                }
+                label.style.opacity = "1";
+            }, 300);
+        }
+
+        function saveChart() {
+            try {
+                const name = document.getElementById("name").value.trim();
+                const date = document.getElementById("date").value;
+                const time = document.getElementById("time").value;
+                const seconds = document.getElementById("seconds").value || 0;
+
+                if (!name || !date || !time) {
+                    alert("⚠️ Please fill Name, Date and Time before saving.");
+                    return;
+                }
+
+                // ✅ Support both datalist input and select (auto-detect)
+                const placeInput = document.getElementById("placeSearch") || document.getElementById("place");
+                if (!placeInput) {
+                    alert("⚠️ Please select or type a valid place before saving.");
+                    return;
+                }
+
+                const selectedPlace = {
+                    city: placeInput.value || "",
+                    lat: placeInput.getAttribute("data-lat") || DEFAULT_PLACE.lat,
+                    lon: placeInput.getAttribute("data-lon") || DEFAULT_PLACE.lon,
+                    tz: placeInput.getAttribute("data-tz") || DEFAULT_PLACE.tz
+                };
+
+                const ayanamsa = document.getElementById("ayanamsa").value;
+                const chartType = document.getElementById("chartType").value;
+                const gender = document.getElementById("gender") ? document.getElementById("gender").value : "";
+                const tag = document.getElementById("tag") ? document.getElementById("tag").value : "";
+                const comment = document.getElementById("comment") ? document.getElementById("comment").value : "";
+
+                const payload = {
+                    name, date, time, seconds,
+                    place_json: selectedPlace,
+                    ayanamsa, chartType,
+                    gender, tag, comment,
+                    data_json: window.lastChartData || {}
+                };
+
+                console.log("💾 Saving chart →", payload);
+
+                fetch("/save_chart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.status === "ok") {
+                            alert("💾 Chart Saved Successfully!");
+                        } else {
+                            alert("❌ Save failed: " + (d.message || "Unknown error"));
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Save error:", err);
+                        alert("❌ Error saving chart.");
+                    });
+
+            } catch (e) {
+                console.error("Unexpected saveChart error:", e);
+                alert("❌ Unexpected error while saving chart.");
+
+            }
+        }
+
+        // ---------------------------
+        // 📂 VIEW / EDIT SAVED CHARTS
+        // ---------------------------
+
+        // ====================================================
+        // 📂 VIEW / LOAD / EDIT / UPDATE SAVED CHARTS
+        // ====================================================
+
+
+        let currentEditingId = null;  // track which chart we're editing
+
+        // Keep one copy of these global vars near top of script
+        let currentSortField = "id";
+        let currentSortDir = "desc";
+        let savedChartsCache = [];
+
+        // ✅ CLEAN VERSION — One search bar (top) + working filter
+        function openSavedCharts() {
+            fetch("/list_charts")
+                .then(r => r.json())
+                .then(res => {
+                    console.log("🛰️ list_charts response:", res);
+
+                    // Normalize
+                    const list = Array.isArray(res)
+                        ? res
+                        : res.charts || [];
+
+                    const modal = document.getElementById("savedModal");
+                    const listDiv = document.getElementById("savedList");
+
+                    if (!Array.isArray(list) || list.length === 0) {
+                        listDiv.innerHTML = "<p>⚠️ சேமிக்கப்பட்ட ஜாதகங்கள் இல்லை.</p>";
+                        modal.style.display = "flex";
+                        return;
+                    }
+
+                    // Cache for filtering
+                    savedChartsCache = list;
+
+                    // Build the table
+                    listDiv.innerHTML = buildSavedChartsTable(list);
+
+                    // Reset search bar & show modal
+                    const searchBox = document.getElementById("chartSearch");
+                    if (searchBox) {
+                        searchBox.value = "";
+                        searchBox.oninput = filterSavedCharts;
+                    }
+
+                    modal.style.display = "flex";
+                })
+                .catch(err => {
+                    console.error("Error loading saved charts:", err);
+                    alert("❌ ஜாதகப் பட்டியல் ஏற்ற முடியவில்லை.");
+                });
+        }
+
+
+
+
+
+
+        // ✅ Load chart into the input fields and regenerate chart
+        // ====================================================
+        // 📂 VIEW / SORTABLE TABLE / LOAD / EDIT / DELETE
+        // ====================================================
+
+
+        // 🔹 Load a saved chart into input fields and regenerate chart
+        function loadSavedChart(cid) {
+            console.log("Fetching saved chart:", cid);
+            fetch(`/get_chart/${cid}`)
+                .then(r => r.json())
+                .then(res => {
+                    console.log("Response from get_chart:", res);
+
+                    if (res.status !== "ok" || !res.chart) {
+                        alert("❌ Chart not found or invalid response.");
+                        return;
+                    }
+
+                    const chart = res.chart;
+                    currentEditingId = chart.id;
+
+                    // 🧭 Fill all main input fields
+                    document.getElementById("name").value = chart.name || "";
+                    document.getElementById("date").value = chart.date || "";
+                    document.getElementById("time").value = chart.time || "";
+                    if (chart.gender) document.getElementById("gender").value = chart.gender;
+                    if (chart.tag) document.getElementById("tag").value = chart.tag;
+                    if (chart.comment) document.getElementById("comment").value = chart.comment;
+
+                    // 🗺️ Restore place info (for both datalist & select)
+                    const pj = chart.place_json || {};
+                    const placeField = document.getElementById("placeSearch") || document.getElementById("place");
+                    if (placeField) {
+                        const displayText = pj.city || pj.name_en || pj.name_ta || "Unknown";
+                        placeField.value = displayText;
+                        placeField.setAttribute("data-lat", pj.lat || pj.latitude || DEFAULT_PLACE.lat);
+                        placeField.setAttribute("data-lon", pj.lon || pj.longitude || DEFAULT_PLACE.lon);
+                        placeField.setAttribute("data-tz", pj.tz || pj.timezone || DEFAULT_PLACE.tz);
+                    }
+
+                    // 🪐 Restore last chart data (planetary positions)
+                    window.lastChartData = chart.data_json || {};
+
+                    // ✅ Close modal & regenerate the chart/table
+                    closeModal("savedModal");
+                    generateChart();
+
+                    // ✅ User feedback
+                    alert(`✅ Loaded chart #${chart.id} (${chart.name || "Unnamed"}) for editing.`);
+                })
+                .catch(err => {
+                    console.error("Error while loading chart:", err);
+                    alert("❌ Could not load saved chart from server.");
+                });
+        }
+
+        // ✏️ Edit simply reuses load logic
+        function editSavedChart(cid) {
+            loadSavedChart(cid);
+        }
+
+        // ====================================================
+        // 📂 VIEW / SORTABLE TABLE / LOAD / EDIT / DELETE
+        // ====================================================
+
+
+        function openSavedCharts() {
+            fetch("/list_charts")
+                .then(r => r.json())
+                .then(res => {
+                    console.log("🛰️ list_charts response:", res);
+
+                    // ✅ Normalize response so it works with either array or object
+                    const list = Array.isArray(res)
+                        ? res
+                        : res.charts || res.data || res.items || [];
+
+                    console.log("📂 Charts fetched (normalized):", list);
+
+                    if (!Array.isArray(list) || list.length === 0) {
+                        document.getElementById("savedList").innerHTML =
+                            "<p>⚠️ சேமிக்கப்பட்ட ஜாதகங்கள் இல்லை.</p>";
+                        document.getElementById("savedModal").style.display = "flex";
+                        return;
+                    }
+
+                    // 🔽 Sort dynamically
+                    list.sort((a, b) => {
+                        const dir = currentSortDir === "asc" ? 1 : -1;
+                        const va = (a[currentSortField] || "").toString().toLowerCase();
+                        const vb = (b[currentSortField] || "").toString().toLowerCase();
+                        if (va < vb) return -1 * dir;
+                        if (va > vb) return 1 * dir;
+                        return 0;
+                    });
+
+                    // 🔍 Add search bar above the table
+                    let html = `
+                    <input type="text" id="savedSearch" placeholder="🔍 பெயர் / வகை / குறிப்பு மூலம் தேடு..." style="width:100%;padding:5px;margin-bottom:8px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th onclick="sortSaved('id')">அடையாளம்</th>
+                                <th onclick="sortSaved('name')">பெயர்</th>
+                                <th onclick="sortSaved('gender')">பாலினம்</th>
+                                <th onclick="sortSaved('date')">பிறந்த தேதி</th>
+                                <th onclick="sortSaved('time')">நேரம்</th>
+                                <th onclick="sortSaved('tag')">வகை</th>
+                                <th onclick="sortSaved('comment')">குறிப்பு</th>
+                                <th>செயல்கள்</th>
+                            </tr>
+                        </thead>
+                        <tbody id="savedTableBody">
+                    `;
+
+                    list.forEach(r => {
+                        html += `
+                        <tr>
+                            <td>${r.id}</td>
+                            <td>${r.name || ""}</td>
+                            <td>${r.gender || "-"}</td>
+                            <td>${r.date || ""}</td>
+                            <td>${r.time || ""}</td>
+                            <td>${r.tag || "-"}</td>
+                            <td>${r.comment || "-"}</td>
+                            <td>
+                                <button onclick="loadSavedChart(${r.id})">📄 Load</button>
+                                <button onclick="editSavedChart(${r.id})">✏️ Edit</button>
+                                <button onclick="deleteSavedChart(${r.id})">🗑️ Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                    });
+
+                    html += "</tbody></table>";
+                    document.getElementById("savedList").innerHTML = html;
+                    document.getElementById("savedModal").style.display = "flex";
+
+                    // 🔍 Enable live filtering
+                    // ============================
+                    // ============================
+                    // 🌟 Full Smart Search: Highlight + Count + No Results + Auto Scroll + Enter-to-Load
+                    // ============================
+                    const searchBox = document.getElementById("savedSearch");
+
+                    searchBox.addEventListener("input", e => handleSearchInput(e));
+                    searchBox.addEventListener("keydown", e => {
+                        if (e.key === "Enter") handleEnterKey(e);
+                    });
+
+                    let lastFilteredResults = []; // 🧠 Store current matches for Enter-to-Load
+
+                    function handleSearchInput(e) {
+                        const raw = (e.target.value || "").toString().trim();
+                        const q = raw.toLowerCase();
+
+                        const digitTokens = (raw.match(/\d+/g) || []).map(s => s.toString());
+                        const textQuery = q.replace(/\s+/g, " ").trim();
+
+                        const filtered = list.filter(r => {
+                            const idStr = (r.id ?? "").toString();
+                            const nameStr = (r.name ?? "").toLowerCase();
+                            const tagStr = (r.tag ?? "").toLowerCase();
+                            const commentStr = (r.comment ?? "").toLowerCase();
+                            const genderStr = (r.gender ?? "").toLowerCase();
+                            const dateStr = (r.date ?? "").toLowerCase();
+                            const timeStr = (r.time ?? "").toLowerCase();
+
+                            // 🔢 Numeric match (ID/date/time)
+                            if (digitTokens.length > 0) {
+                                for (let dt of digitTokens) {
+                                    if (idStr.includes(dt)) return true;
+                                    if (dateStr.replace(/\D/g, "").includes(dt)) return true;
+                                    if (timeStr.replace(/\D/g, "").includes(dt)) return true;
+                                }
+                            }
+
+                            // 🔤 Text search
+                            if (!textQuery) return false;
+                            return (
+                                idStr.toLowerCase().includes(textQuery) ||
+                                nameStr.includes(textQuery) ||
+                                tagStr.includes(textQuery) ||
+                                commentStr.includes(textQuery) ||
+                                genderStr.includes(textQuery) ||
+                                dateStr.includes(textQuery) ||
+                                timeStr.includes(textQuery)
+                            );
+                        });
+
+                        lastFilteredResults = filtered; // 🧠 save for Enter key use
+
+                        // ✅ Highlight helpers
+                        function highlightMatch(text, query) {
+                            if (!query) return text;
+                            const pattern = new RegExp(`(${query})`, "gi");
+                            return text.replace(pattern, `<span style="background:#fff59d;border-radius:3px;padding:0 2px;font-weight:bold;">$1</span>`);
+                        }
+
+                        function highlightNumbers(text, numbers) {
+                            let result = text;
+                            numbers.forEach(num => {
+                                if (!num) return;
+                                const pattern = new RegExp(`(${num})`, "gi");
+                                result = result.replace(pattern, `<span style="background:#fff59d;border-radius:3px;padding:0 2px;font-weight:bold;">$1</span>`);
+                            });
+                            return result;
+                        }
+
+                        const savedListDiv = document.getElementById("savedList");
+
+                        // 🧮 Build header message
+                        let countInfo = "";
+                        if (raw.trim().length > 0) {
+                            if (filtered.length > 0) {
+                                countInfo = `<div id="resultCount" style="margin-bottom:8px;font-size:13px;color:#555;">
+                                    🔍 ${filtered.length} முடிவுகள் கிடைத்தன
+                                    <span style="float:right;color:#888;">↵ அழுத்தவும் Load செய்ய</span>
+                                </div>`;
+                             } else {
+                                 countInfo = `<div id="resultCount" style="margin-bottom:8px;font-size:13px;color:#b00020;text-align:center;font-weight:bold;">
+                                ❌ முடிவுகள் எதுவும் இல்லை
+                            </div>`;
+                            }
+                        }
+
+                        // 🧩 If no results, show message only
+                        if (filtered.length === 0 && raw.trim().length > 0) {
+                            savedListDiv.innerHTML = countInfo;
+                            return;
+                        }
+
+                        // ✅ Build results table
+                        const tbodyHTML = filtered.map((r, i) => {
+                            const idStr = r.id.toString();
+                            const nameStr = r.name || "";
+                            const genderStr = r.gender || "-";
+                            const dateStr = r.date || "";
+                            const timeStr = r.time || "";
+                            const tagStr = r.tag || "-";
+                            const commentStr = r.comment || "-";
+
+                            let idHighlighted = highlightNumbers(idStr, digitTokens);
+                            let dateHighlighted = highlightNumbers(dateStr, digitTokens);
+                            let timeHighlighted = highlightNumbers(timeStr, digitTokens);
+
+                            idHighlighted = highlightMatch(idHighlighted, textQuery);
+                            dateHighlighted = highlightMatch(dateHighlighted, textQuery);
+                            timeHighlighted = highlightMatch(timeHighlighted, textQuery);
+
+                            // 🧭 highlight first row for Enter
+                            const rowClass = i === 0 ? "resultRow firstMatch" : "resultRow";
+
+                            return `
+                                <tr class="${rowClass}">
+                                    <td>${idHighlighted}</td>
+                                    <td>${highlightMatch(nameStr, textQuery)}</td>
+                                    <td>${highlightMatch(genderStr, textQuery)}</td>
+                                    <td>${dateHighlighted}</td>
+                                    <td>${timeHighlighted}</td>
+                                    <td>${highlightMatch(tagStr, textQuery)}</td>
+                                    <td>${highlightMatch(commentStr, textQuery)}</td>
+                                    <td>
+                                        <button onclick="loadSavedChart(${r.id})">📄 Load</button>
+                                        <button onclick="editSavedChart(${r.id})">✏️ Edit</button>
+                                        <button onclick="deleteSavedChart(${r.id})">🗑️ Delete</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join("");
+
+                        // ✅ Inject results + message
+                        savedListDiv.innerHTML = `
+                            ${countInfo}
+                            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>பெயர்</th>
+                                        <th>பாலினம்</th>
+                                        <th>பிறந்த தேதி</th>
+                                        <th>நேரம்</th>
+                                        <th>வகை</th>
+                                        <th>குறிப்பு</th>
+                                        <th>செயல்</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="savedTableBody">
+                                    ${tbodyHTML}
+                                </tbody>
+                            </table>
+                        `;
+
+                        // ✅ Auto-scroll to first result
+                        if (filtered.length > 0) {
+                            const firstRow = document.querySelector("#savedTableBody .firstMatch");
+                            if (firstRow) {
+                                firstRow.scrollIntoView({ behavior: "smooth", block: "start" });
+                            }
+                        }
+                    }
+
+                    // ⚡ Press Enter to load the first visible result
+                    function handleEnterKey(e) {
+                        e.preventDefault();
+                        if (lastFilteredResults.length === 0) return;
+
+                        const first = lastFilteredResults[0];
+                        if (first && first.id) {
+                            console.log("↵ Enter pressed — loading chart:", first.id);
+                            loadSavedChart(first.id);
+                        }
+                    }
+
+
+
+
+
+                })
+                .catch(err => {
+                    console.error("Error loading saved charts:", err);
+                    alert("❌ ஜாதகப் பட்டியல் ஏற்ற முடியவில்லை.");
+                });
+        }
+
+        // 🧰 Build saved charts table dynamically
+        function buildSavedChartsTable(list) {
+            list.sort((a, b) => {
+                const dir = currentSortDir === "asc" ? 1 : -1;
+                const va = (a[currentSortField] || "").toString().toLowerCase();
+                const vb = (b[currentSortField] || "").toString().toLowerCase();
+                if (va < vb) return -1 * dir;
+                if (va > vb) return 1 * dir;
+                return 0;
+            });
+
+            let html = `
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+                <tr>
+                    <th onclick="sortSaved('id')">ID</th>
+                    <th onclick="sortSaved('name')">பெயர்</th>
+                    <th onclick="sortSaved('gender')">பாலினம்</th>
+                    <th onclick="sortSaved('date')">பிறந்த தேதி</th>
+                    <th onclick="sortSaved('time')">நேரம்</th>
+                    <th onclick="sortSaved('tag')">வகை</th>
+                    <th onclick="sortSaved('comment')">குறிப்பு</th>
+                    <th>செயல்</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+            list.forEach(r => {
+                html += `
+                <tr>
+                    <td>${r.id}</td>
+                    <td>${r.name || ""}</td>
+                    <td>${r.gender || "-"}</td>
+                    <td>${r.date || ""}</td>
+                    <td>${r.time || ""}</td>
+                    <td>${r.tag || "-"}</td>
+                    <td>${r.comment || "-"}</td>
+                    <td>
+                        <button onclick="loadSavedChart(${r.id})">📄 Load</button>
+                        <button onclick="editSavedChart(${r.id})">✏️ Edit</button>
+                        <button onclick="deleteSavedChart(${r.id})">🗑️ Delete</button>
+                    </td>
+                </tr>
+            `;
+            });
+
+            html += "</tbody></table>";
+            return html;
+        }
+        console.log("✅ Saved charts cache:", savedChartsCache);
+
+        function filterSavedCharts() {
+            const query = document.getElementById("chartSearch").value.toLowerCase().trim();
+
+            if (!query) {
+                document.getElementById("savedList").innerHTML = buildSavedChartsTable(savedChartsCache);
+                return;
+            }
+
+            const filtered = savedChartsCache.filter(r => {
+                const n = (r.name || r.Name || "").toLowerCase();
+                const c = (r.comment || r.Comment || "").toLowerCase();
+                const t = (r.tag || r.Tag || "").toLowerCase();
+                const g = (r.gender || r.Gender || "").toLowerCase();
+                const a = (r.ayanamsa || "").toLowerCase();
+                const d = (r.date || "").toLowerCase();
+
+                return (
+                    n.includes(query) ||
+                    c.includes(query) ||
+                    t.includes(query) ||
+                    g.includes(query) ||
+                    a.includes(query) ||
+                    d.includes(query)
+                );
+            });
+
+            console.log("🔍 Filter result:", filtered);
+            document.getElementById("savedList").innerHTML = buildSavedChartsTable(filtered);
+        }
+
+
+
+
+        // 🔁 Sorting toggle helper
+        function sortSaved(field) {
+            if (currentSortField === field) {
+                currentSortDir = currentSortDir === "asc" ? "desc" : "asc";
+            } else {
+                currentSortField = field;
+                currentSortDir = "asc";
+            }
+            openSavedCharts(); // re-render with new sort
+        }
+
+        function addPlace() { /* ... same ... */ }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+    </script>
+</body>
+</html>
+
+
+

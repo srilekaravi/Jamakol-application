@@ -1,0 +1,636 @@
+﻿<!doctype html>
+<html lang="ta">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ஜாதகக் கட்டம் (South Indian)</title>
+    <style>
+        :root {
+            --accent: #ff9800;
+            --accent-dark: #e68900;
+            --bg: #fffef8;
+            --box-border: #000;
+            --center-green: darkgreen;
+            --planet-font: 16px;
+        }
+
+        body {
+            font-family: "Noto Sans Tamil", "Noto Sans", Arial, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding: 18px;
+            color: #222;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        #formbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            margin: 14px 0 18px 0;
+            flex-wrap: wrap;
+        }
+
+            #formbar input, #formbar select, #formbar button {
+                padding: 6px 8px;
+                font-size: 14px;
+            }
+
+                #formbar input[type="date"], #formbar input[type="time"] {
+                    min-width: 130px;
+                }
+
+        button.primary {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button.ghost {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #layout {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 8px;
+        }
+        /* Chart box */
+        #chart {
+            width: 640px;
+            height: 640px;
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            grid-template-rows: repeat(4,1fr);
+            gap: 6px;
+            border: 3px solid var(--box-border);
+            background: #fff;
+            position: relative;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        .cell {
+            background: #fff;
+            border: 2px solid var(--box-border);
+            border-radius: 6px;
+            padding: 8px;
+            box-sizing: border-box;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            font-size: 14px;
+        }
+
+            .cell .planets {
+                margin-top: 6px;
+                width: 100%;
+                text-align: left;
+            }
+
+        .planet-line {
+            display: block;
+            font-weight: 700;
+            margin: 4px 0;
+            font-size: var(--planet-font);
+        }
+
+        .planet-deg {
+            font-weight: 600;
+            font-size: 13px;
+            margin-left: 6px;
+            color: #222;
+        }
+        /* Lagna highlight - gentle background only */
+        .lagna {
+            background: #fff8e1;
+            border-color: var(--accent);
+        }
+        /* center label */
+        #center-label {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%,-50%);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--center-green);
+            pointer-events: none;
+            user-select: none;
+        }
+        /* right-side table */
+        #rightcol {
+            width: 380px;
+        }
+
+        table#planet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        #planet-table th, #planet-table td {
+            border: 1px solid #aaa;
+            padding: 6px;
+            text-align: center;
+        }
+
+        #planet-table th {
+            background: #ffebcc;
+        }
+        /* modals */
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.35);
+            z-index: 80;
+        }
+
+            .modal .card {
+                background: #fff;
+                padding: 14px;
+                border-radius: 8px;
+                width: 560px;
+                max-height: 78vh;
+                overflow: auto;
+            }
+
+            .modal .small {
+                width: 420px;
+            }
+
+        .row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        label {
+            width: 110px;
+            font-weight: 600;
+            font-size: 13px;
+            display: inline-block;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 6px;
+            flex: 1;
+            font-size: 14px;
+        }
+
+        .actions {
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        .tiny {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .btn-danger {
+            background: #d9534f;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        /* responsive */
+        @media(max-width:1100px) {
+            #layout {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #chart {
+                width: 520px;
+                height: 520px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ஜாதகக் கட்டம் (South Indian Style)</h1>
+    </header>
+
+    <div id="formbar">
+        <input id="person_name" placeholder="பெயர்" />
+        <input id="date" type="date" />
+        <input id="time" type="time" />
+        <select id="place_select" title="Choose place"></select>
+        <select id="ayanamsa">
+            <option value="lahiri">Lahiri</option>
+            <option value="raman">Raman</option>
+            <option value="kp">KP</option>
+            <option value="yukteshwar">Yukteshwar</option>
+        </select>
+
+        <button class="ghost" onclick="openAddPlace()">+ Add Place</button>
+        <button class="primary" onclick="saveChart()">💾 Save</button>
+        <button class="ghost" onclick="openSaved()">📂 Saved</button>
+    </div>
+
+    <!-- === Fixed South-Indian Rasi Chart Layout === -->
+    <div id="layout">
+        <div id="chart" aria-label="Rasi Chart"></div>
+
+        <div id="rightcol">
+            <div id="tableWrap"></div>
+        </div>
+    </div>
+
+    <!-- Clean Tamil center label (no border / highlight) -->
+    <div id="center-label">ராசி</div>
+    <!-- === End Chart Layout === -->
+    <!-- Saved charts modal -->
+    <div id="modal_saved" class="modal">
+        <div class="card">
+            <h3>சேமிக்கப்பட்ட ஜாதகங்கள்</h3>
+            <div id="saved_list">Loading...</div>
+            <div style="margin-top:8px;text-align:right;">
+                <button onclick="closeModal('modal_saved')" class="ghost">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Place modal -->
+    <div id="modal_place" class="modal">
+        <div class="card small">
+            <h3>புதிய இடம் சேர்க்க</h3>
+            <div class="row"><label>City</label><input id="p_city" type="text"></div>
+            <div class="row"><label>State</label><input id="p_state" type="text"></div>
+            <div class="row"><label>Country</label><input id="p_country" type="text"></div>
+            <div class="row"><label>Latitude</label><input id="p_lat" type="number" step="0.0001"></div>
+            <div class="row"><label>Longitude</label><input id="p_lon" type="number" step="0.0001"></div>
+            <div class="row"><label>Timezone</label><input id="p_tz" type="number" step="0.25" placeholder="e.g., 5.5"></div>
+            <div class="actions">
+                <button class="ghost" onclick="closeModal('modal_place')">Cancel</button>
+                <button class="primary" onclick="savePlace()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Small confirm / comment prompt (native prompt can be used for quick comment editing) -->
+    <script>
+        /* ---------- Utility & state ---------- */
+        const DEFAULT_PLACE = { city: "Chennai", lat: 13.0827, lon: 80.2707, tz: 5.5 };
+        let placesList = [];
+        let lastRequestTimer = null;
+        const debounceDelay = 300; // ms
+
+        /* ---------- Init: load places, set date/time defaults, generate initial chart ---------- */
+        window.addEventListener('load', async () => {
+            await loadPlaces();
+            // set default date/time to now
+            const now = new Date();
+            document.getElementById('date').value = now.toISOString().slice(0, 10);
+            // time in hh:mm (local)
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').value = hh + ':' + mm;
+
+            // auto-generate when inputs change (debounced)
+            ['date', 'time', 'place_select', 'ayanamsa'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('change', () => scheduleGenerate());
+            });
+
+            // If person_name changes do not auto-generate planets (optional), but currently we will auto-update
+            document.getElementById('person_name').addEventListener('change', () => scheduleGenerate());
+
+            scheduleGenerate(0);
+        });
+
+        /* ---------- Places management ---------- */
+        async function loadPlaces() {
+            try {
+                const resp = await fetch('/list_places');
+                const list = await resp.json();
+                placesList = list || [];
+                const sel = document.getElementById('place_select');
+                sel.innerHTML = '';
+                // Add a blank / default option
+                const defOpt = document.createElement('option');
+                defOpt.value = JSON.stringify({ city: DEFAULT_PLACE.city, lat: DEFAULT_PLACE.lat, lon: DEFAULT_PLACE.lon, tz: DEFAULT_PLACE.tz });
+                defOpt.textContent = DEFAULT_PLACE.city + ' (default)';
+                sel.appendChild(defOpt);
+
+                placesList.forEach(p => {
+                    const o = document.createElement('option');
+                    o.value = JSON.stringify(p);
+                    o.textContent = `${p.city}, ${p.country || ''}`.trim();
+                    sel.appendChild(o);
+                });
+
+                // Attempt to select Chennai if present
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].textContent.toLowerCase().startsWith('chennai')) {
+                        sel.selectedIndex = i; break;
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load places', err);
+            }
+        }
+
+        async function savePlace() {
+            const p = {
+                city: document.getElementById('p_city').value || '',
+                state: document.getElementById('p_state').value || '',
+                country: document.getElementById('p_country').value || '',
+                lat: parseFloat(document.getElementById('p_lat').value) || DEFAULT_PLACE.lat,
+                lon: parseFloat(document.getElementById('p_lon').value) || DEFAULT_PLACE.lon,
+                tz: parseFloat(document.getElementById('p_tz').value) || DEFAULT_PLACE.tz
+            };
+            try {
+                const res = await fetch('/add_place', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p)
+                });
+                const j = await res.json();
+                if (j.status === 'ok') {
+                    closeModal('modal_place');
+                    await loadPlaces();
+                    scheduleGenerate(0);
+                } else {
+                    alert('Failed to save place');
+                }
+            } catch (e) {
+                console.error(e); alert('Error saving place');
+            }
+        }
+
+        function openAddPlace() {
+            document.getElementById('p_city').value = '';
+            document.getElementById('p_state').value = '';
+            document.getElementById('p_country').value = '';
+            document.getElementById('p_lat').value = '';
+            document.getElementById('p_lon').value = '';
+            document.getElementById('p_tz').value = '';
+            openModal('modal_place');
+        }
+
+        /* ---------- Modal helpers ---------- */
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        /* ---------- Debounce / schedule generate ---------- */
+        function scheduleGenerate(delay = debounceDelay) {
+            if (lastRequestTimer) clearTimeout(lastRequestTimer);
+            lastRequestTimer = setTimeout(() => { generateChart(); }, delay);
+        }
+
+        /* ---------- Generate chart (calls backend) ---------- */
+        async function generateChart() {
+            try {
+                const date = document.getElementById('date').value;
+                const time = document.getElementById('time').value || '00:00';
+                if (!date) return;
+                const placeVal = document.getElementById('place_select').value;
+                const place = placeVal ? JSON.parse(placeVal) : DEFAULT_PLACE;
+                const [hour, minute] = time.split(':').map(x => parseInt(x, 10));
+                const ayanamsa = document.getElementById('ayanamsa').value || 'lahiri';
+
+                const payload = {
+                    year: parseInt(date.split('-')[0], 10),
+                    month: parseInt(date.split('-')[1], 10),
+                    day: parseInt(date.split('-')[2], 10),
+                    hour: hour, minute: minute, second: 0,
+                    lat: place.lat || DEFAULT_PLACE.lat,
+                    lon: place.lon || DEFAULT_PLACE.lon,
+                    tz: place.tz || DEFAULT_PLACE.tz,
+                    ayanamsa
+                };
+
+                const resp = await fetch('/generate_chart', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                });
+                const j = await resp.json();
+                if (j.status === 'ok') {
+                    renderChart(j.rows || []);
+                    renderTableHTML(j.html || '', j.rows || []);
+                } else {
+                    console.error('generate_chart error', j.message);
+                    // clear UI if error
+                    renderChart([]);
+                    document.getElementById('tableWrap').innerHTML = `<div class="tiny">Error: ${j.message}</div>`;
+                }
+            } catch (e) {
+                console.error('generateChart failed', e);
+            }
+        }
+
+        /* ---------- Render functions ---------- */
+        function renderTableHTML(html, rows) {
+            // put HTML table (planetary list) in right column
+            const wrap = document.getElementById('tableWrap');
+            wrap.innerHTML = html || buildFallbackTable(rows);
+            // tiny styling
+            const table = wrap.querySelector('#planet-table');
+            if (table) table.style.fontSize = '13px';
+        }
+
+        function buildFallbackTable(rows) {
+            if (!rows || rows.length === 0) return '<div class="tiny">No planet data</div>';
+            let html = '<table id="planet-table"><tr><th>கிரகம்</th><th>டிகிரி</th><th>ராசி</th><th>நட்சத்திரம்</th><th>பாதம்</th><th>அதிபதி</th></tr>';
+            rows.forEach(r => {
+                html += `<tr><td>${r.name}</td><td>${r.dms}</td><td>${r.rasi}</td><td>${r.nak || ''}</td><td>${r.pada || ''}</td><td>${r.rasi_lord || ''}</td></tr>`;
+            });
+            html += '</table>';
+            return html;
+        }
+
+        /* Utility: convert "DD:MM:SS" to "DD°MM\''" (no seconds) */
+        function degMinOnly(dms) {
+            if (!dms) return '';
+            const parts = dms.split(':').map(x => x.replace(/^0+/, '') || '0');
+            const d = parts[0] || '0';
+            const m = parts[1] || '0';
+            return `${d}°${m}'`;
+        }
+
+        /* Render South Indian chart (no rasi names inside boxes; center shows 'ராசி') */
+        function renderChart(rows) {
+            // map rasi -> list of planet HTML
+            const tamilRasis = ["மேஷம்", "ரிஷபம்", "மிதுனம்", "கடகம்", "சிம்மம்", "கன்னி",
+                "துலாம்", "விருச்சிகம்", "தனுசு", "மகரம்", "கும்பம்", "மீனம்"];
+            const grid = {};
+            tamilRasis.forEach(r => grid[r] = []);
+            let lagnaRasi = null;
+
+            rows.forEach(r => {
+                const name = r.name || '';
+                const dms = r.dms || '';
+                const degmin = degMinOnly(dms);
+                // store planet display as: NAME + small degmin
+                const html = `<span class="planet-line">${name} <span class="planet-deg">${degmin}</span></span>`;
+                if (r.name === 'லக்னம்') lagnaRasi = r.rasi;
+                if (r.rasi && grid[r.rasi]) grid[r.rasi].push(html);
+            });
+
+            // South Indian order with மீனம் top-left (4x4)
+            const order = [
+                "மீனம்", "மேஷம்", "ரிஷபம்", "மிதுனம்",
+                "கும்பம்", null, null, "கடகம்",
+                "மகரம்", null, null, "சிம்மம்",
+                "தனுசு", "விருச்சிகம்", "துலாம்", "கன்னி"
+            ];
+
+            const chart = document.getElementById('chart');
+            chart.innerHTML = '';
+            order.forEach(rasi => {
+                if (rasi === null) {
+                    chart.innerHTML += '<div></div>';
+                } else {
+                    const isLagna = (rasi === lagnaRasi);
+                    const cls = 'cell' + (isLagna ? ' lagna' : '');
+                    const planetsHtml = grid[rasi].join('');
+                    chart.innerHTML += `<div class="${cls}">${planetsHtml}</div>`;
+                }
+            });
+
+            // center label already present as #center-label; keep it
+        }
+
+        /* ---------- Save / Saved charts UI ---------- */
+        async function saveChart() {
+            const name = document.getElementById('person_name').value || 'Unnamed';
+            const date = document.getElementById('date').value;
+            const time = document.getElementById('time').value;
+            const place = document.getElementById('place_select').value || '';
+            const ayanamsa = document.getElementById('ayanamsa').value;
+            const data_html = document.getElementById('tableWrap').innerHTML;
+
+            // also capture rows currently displayed (try to get from table rows)
+            let data_json = [];
+            try {
+                // try to read planet rows from generated tableWrap -> fallback to empty
+                const table = document.querySelector('#planet-table');
+                if (table) {
+                    const trs = Array.from(table.querySelectorAll('tr')).slice(1);
+                    trs.forEach(tr => {
+                        const tds = tr.querySelectorAll('td');
+                        data_json.push({
+                            name: tds[0]?.textContent?.trim(),
+                            dms: tds[1]?.textContent?.trim(),
+                            rasi: tds[2]?.textContent?.trim(),
+                            nak: tds[3]?.textContent?.trim(),
+                            pada: tds[4]?.textContent?.trim(),
+                            rasi_lord: tds[5]?.textContent?.trim()
+                        });
+                    });
+                }
+            } catch (e) { console.warn('saveChart: build data_json failed', e); }
+
+            const payload = {
+                name, date, time, place_json: place, ayanamsa, comment: '', data_json
+            };
+
+            try {
+                const r = await fetch('/save_chart', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                const j = await r.json();
+                if (j.status === 'ok') alert('Chart saved');
+                else alert('Save failed');
+            } catch (e) {
+                console.error(e); alert('Save request failed');
+            }
+        }
+
+        async function openSaved() {
+            try {
+                const r = await fetch('/list_charts');
+                const list = await r.json();
+                const div = document.getElementById('saved_list');
+                if (!list || list.length === 0) {
+                    div.innerHTML = '<div class="tiny">No saved charts</div>';
+                } else {
+                    let html = '<table style="width:100%;border-collapse:collapse;"><tr><th>Name</th><th>Date</th><th>Time</th><th>Ayanamsa</th><th>Actions</th></tr>';
+                    list.forEach(item => {
+                        html += `<tr>
+                            <td style="padding:6px">${escapeHtml(item.name)}</td>
+                            <td style="padding:6px">${escapeHtml(item.date)}</td>
+                            <td style="padding:6px">${escapeHtml(item.time)}</td>
+                            <td style="padding:6px">${escapeHtml(item.ayanamsa || '')}</td>
+                            <td style="padding:6px">
+                              <button onclick="loadSaved(${item.id})">Load</button>
+                              <button onclick="editComment(${item.id})">Comment</button>
+                              <button onclick="delSaved(${item.id})" style="background:#d9534f;color:#fff;border:none;padding:4px 8px;border-radius:4px;">Delete</button>
+                            </td>
+                        </tr>`;
+                    });
+                    html += '</table>';
+                    div.innerHTML = html;
+                }
+                openModal('modal_saved');
+            } catch (e) {
+                console.error(e); alert('Failed to load saved charts');
+            }
+        }
+
+        async function loadSaved(id) {
+            try {
+                const r = await fetch('/get_chart/' + id);
+                const j = await r.json();
+                if (j.status === 'ok' && j.chart && j.chart.data_json) {
+                    // j.chart.data_json expected to be array of planet rows (our save code stores that)
+                    const rows = j.chart.data_json;
+                    // set UI date/time/place/name? (we did not store all metadata consistently; optional)
+                    renderChart(rows);
+                    renderTableHTML('', rows); // build fallback table from rows
+                    closeModal('modal_saved');
+                } else {
+                    alert('Saved chart missing data');
+                }
+            } catch (e) { console.error(e); alert('Failed to load saved chart'); }
+        }
+
+        async function delSaved(id) {
+            if (!confirm('Delete this saved chart?')) return;
+            try {
+                await fetch('/delete_chart/' + id, { method: 'POST' });
+                openSaved();
+            } catch (e) { console.error(e); alert('Delete failed'); }
+        }
+
+        async function editComment(id) {
+            const c = prompt('Enter comment for this chart (will be saved):');
+            if (c === null) return;
+            try {
+                await fetch('/update_chart/' + id, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment: c }) });
+                openSaved();
+            } catch (e) { console.error(e); alert('Failed to update comment'); }
+        }
+
+        /* ---------- Helpers ---------- */
+        function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+    </script>
+</body>
+</html>
