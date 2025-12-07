@@ -75,6 +75,25 @@ DB_PATH = CHARTS_DB
 
 app = Flask(__name__)
 
+def ensure_charts_table():
+    conn = sqlite3.connect(CHARTS_DB)
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS charts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            dob TEXT,
+            tob TEXT,
+            place TEXT,
+            latitude REAL,
+            longitude REAL,
+            timezone REAL,
+            raw_json TEXT,
+            created_at TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
 
 def ensure_dasha_table():
     conn = sqlite3.connect(DASHA_DB)
