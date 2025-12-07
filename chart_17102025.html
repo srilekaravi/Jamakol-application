@@ -1,0 +1,235 @@
+
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+    <meta charset="utf-8">
+    <title>ஜாதகக் கட்டம்</title>
+    <style>
+        body {
+            font-family: "Noto Sans Tamil", sans-serif;
+            background: #fffef8;
+            color: #222;
+            margin: 0;
+            padding: 10px;
+        }
+
+        #chartSearch {
+            outline: none;
+            transition: box-shadow 0.2s ease;
+        }
+
+            #chartSearch:focus {
+                box-shadow: 0 0 4px #ff9800;
+            }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #formbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+            #formbar input, #formbar select {
+                padding: 4px 6px;
+                font-size: 13px;
+            }
+
+        #place {
+            min-width: 220px;
+        }
+
+        button {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            button:hover {
+                background: #e68900;
+            }
+
+        #container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        #chart {
+            width: 600px;
+            height: 600px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 2px;
+            border: 3px solid #000;
+            background: #fff;
+            position: relative;
+        }
+
+        .chart-box {
+            border: 1px solid #000;
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        #planet-table {
+            border-collapse: collapse;
+            width: 420px;
+            font-size: 13px;
+        }
+
+            #planet-table th, #planet-table td {
+                border: 1px solid #999;
+                padding: 4px;
+                text-align: center;
+            }
+
+            #planet-table th {
+                background: #ffb84d;
+            }
+
+        #center-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: darkgreen;
+            font-size: 22px;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 700px; /* was 420px */
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+
+
+        .modal h3 {
+            margin-top: 0;
+        }
+
+        .modal table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .modal th, .modal td {
+            border: 1px solid #ccc;
+            padding: 4px;
+            text-align: center;
+        }
+
+        .modal button {
+            margin: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>ஜாதகக் கட்டம் (South Indian Style)</h2>
+
+    <div id="formbar">
+        <input id="name" type="text" placeholder="பெயர்">
+        <input id="date" type="date">
+        <div>
+            <input id="time" type="time" step="1">
+            <input id="seconds" type="number" min="0" max="59" value="0" style="width:50px;">
+        </div>
+        <select id="place"></select>
+        <select id="ayanamsa">
+            <option value="lahiri">Lahiri</option>
+            <option value="raman">Raman</option>
+            <option value="kp">KP</option>
+            <option value="yukteshwar">Yukteshwar</option>
+        </select>
+        <select id="chartType">
+            <option value="rasi">ராசி</option>
+            <option value="d9">D9 - நவம்சம்</option>
+            <option value="d10">D10 - தசம்சம்</option>
+            <option value="d7">D7 - ஸப்தம்சம்</option>
+        </select>
+        <!-- 🆕 Optional extra fields -->
+        <select id="gender">
+            <option value="">பாலினம் (Gender)</option>
+            <option value="Male">ஆண் (Male)</option>
+            <option value="Female">பெண் (Female)</option>
+            <option value="Other">மற்றவை (Other)</option>
+        </select>
+
+        <select id="tag">
+            <option value="">வகை (Tag)</option>
+            <option value="Client">வாடிக்கையாளர் (Client)</option>
+            <option value="Family">குடும்பம் (Family)</option>
+            <option value="Friend">நண்பர் (Friend)</option>
+            <option value="Other">மற்றவை (Other)</option>
+        </select>
+
+        <textarea id="comment" rows="2" placeholder="குறிப்புகள் / Notes (optional)"></textarea>
+
+        <button onclick="openAddPlace()">+ Add Place</button>
+        <button onclick="saveChart()">💾 Save</button>
+        <button onclick="openSavedCharts()">📂 View Saved</button>
+    </div>
+
+    <div id="container">
+        <div style="position:relative;">
+            <div id="chart"></div>
+            <div id="center-label">ராசி</div>
+        </div>
+
+        <!-- Planet Table -->
+        <div id="tableWrap"></div>
+    </div>
+
+    <!-- 🪔 Panchangam Section -->
+    <div id="panchangamWrap"
+         style="margin-top:10px;padding:10px;border:1px solid #ddd;
+            border-radius:8px;background:#fff8e1;display:none;">
+        <h4 style="margin:0 0 6px 0;">🪔 பஞ்சாங்கம்</h4>
+        <div id="panchangamData"
+             style="font-size:14px;line-height:1.6;">
+            Loading...
+        </div>
+    </div>
+
+
+    <!-- Load scripts in correct sequence -->
+    <script src="{{ url_for('static', filename='js/core.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/panchangam.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/rasiChart.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/init.js') }}"></script>
+</body>
+</html>
+
