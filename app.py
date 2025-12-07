@@ -2,6 +2,8 @@
 from flask import Flask, render_template, request, jsonify
 import sqlite3, swisseph as swe
 import datetime
+import os
+from flask import Flask
 from app_stable_backup import calc_full_table  # ✅ uses your verified calc with Maandhi, Lagna, etc.
 from maandhi import compute_maandhi
 from maandhi import compute_maandhi as _compute_maandhi
@@ -14,6 +16,25 @@ from padas import calculate_padas
 from karakas import calculate_chara_karakas
 from chart_comparison import get_dual_chart_data
 import os
+
+import os
+# ✅ Project base directory (Render safe)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+CHARTS_DB = os.path.join(DATA_DIR, "charts.db")
+DASHA_DB  = os.path.join(DATA_DIR, "dasha.db")
+EVENTS_DB = os.path.join(DATA_DIR, "events.db")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+CHARTS_DB = os.path.join(DATA_DIR, "charts.db")
+
 # === ✅ Use your real DB files ===
 CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
 DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
