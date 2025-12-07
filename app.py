@@ -173,12 +173,23 @@ def ensure_transit_table():
     conn.commit()
     conn.close()
 
-def (*args, **kwargs):
-    result = _compute_maandhi(*args, **kwargs)
-    if isinstance(result, dict):
-        return result
-    # Wrap stray string or other types
-    return {"dbg_line": str(result), "rasi": "", "dms": "", "nak": "", "pada": "", "rasi_lord": "", "maandhi_jd": 0.0}
+def safe_compute_maandhi(jd_ut):
+    try:
+        result = _compute_maandhi(jd_ut)
+        if isinstance(result, dict):
+            return result
+        return {
+            "dbg_line": str(result),
+            "rasi": "",
+            "dms": "",
+            "nak": "",
+            "pada": "",
+            "rasi_lord": "",
+            "maandhi_jd": float(jd_ut)
+        }
+    except Exception as e:
+        print("⚠️ மாந்தி calculation failed:", e)
+        return None
 
 
 DB_PATH = "charts.db"
@@ -188,7 +199,7 @@ DB_PATH = CHARTS_DB
 
 
 try:
-    maandhi = compute_maandhi(jd_ut)
+    maandhi = safe_compute_maandhi(jd_ut)
 except Exception as e:
     print("⚠️ மாந்தி calculation failed:", e)
     maandhi = None
