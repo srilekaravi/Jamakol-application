@@ -173,7 +173,7 @@ def ensure_transit_table():
     conn.commit()
     conn.close()
 
-def compute_maandhi(*args, **kwargs):
+def (*args, **kwargs):
     result = _compute_maandhi(*args, **kwargs)
     if isinstance(result, dict):
         return result
@@ -186,6 +186,12 @@ PLACES_DB = "places.db"
 DB_PATH = CHARTS_DB
   # ✅ ensure all chart data goes to /data/charts.db
 
+
+try:
+    maandhi = compute_maandhi(jd_ut)
+except Exception as e:
+    print("⚠️ மாந்தி calculation failed:", e)
+    maandhi = None
 
 # -------------------- MAIN PAGE --------------------
 @app.route("/")
