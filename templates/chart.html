@@ -1,5 +1,6 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ta">
+
 <head>
     <meta charset="utf-8">
     <title>ஜாதகக் கட்டம்</title>
@@ -25,10 +26,11 @@
             margin-bottom: 10px;
         }
 
-            #formbar input, #formbar select {
-                padding: 4px 6px;
-                font-size: 13px;
-            }
+        #formbar input,
+        #formbar select {
+            padding: 4px 6px;
+            font-size: 13px;
+        }
 
         #place {
             min-width: 220px;
@@ -43,9 +45,9 @@
             cursor: pointer;
         }
 
-            button:hover {
-                background: #e68900;
-            }
+        button:hover {
+            background: #e68900;
+        }
 
         #container {
             display: flex;
@@ -80,19 +82,22 @@
             font-size: 13px;
         }
 
-            #planet-table th, #planet-table td {
-                border: 1px solid #999;
-                padding: 4px;
-                text-align: center;
-            }
+        #planet-table th,
+        #planet-table td {
+            border: 1px solid #999;
+            padding: 4px;
+            text-align: center;
+        }
 
-            #planet-table th {
-                background: #ffb84d;
-            }
+        #planet-table th {
+            background: #ffb84d;
+        }
+
         /* --- Safe Panchangam Alignment Fix --- */
         #panchangamWrap {
             width: 100%;
-            max-width: 420px; /* match planet table */
+            max-width: 420px;
+            /* match planet table */
             margin-top: 8px;
         }
 
@@ -100,6 +105,7 @@
             box-sizing: border-box;
             width: 100%;
         }
+
         /* --- Panchangam Header Style --- */
         #panchangamWrap h4 {
             background: #ffb84d;
@@ -128,7 +134,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0, 0, 0, 0.4);
             display: none;
             justify-content: center;
             align-items: center;
@@ -153,7 +159,8 @@
             font-size: 13px;
         }
 
-        .modal th, .modal td {
+        .modal th,
+        .modal td {
             border: 1px solid #ccc;
             padding: 4px;
             text-align: center;
@@ -173,9 +180,9 @@
             font-weight: 600;
         }
 
-            #newChartBtn:hover {
-                background: #e64a19;
-            }
+        #newChartBtn:hover {
+            background: #e64a19;
+        }
 
         #transitPanel {
             display: flex;
@@ -207,11 +214,11 @@
             cursor: pointer;
         }
 
-            .transit-mini h5 {
-                text-align: center;
-                margin: 4px 0;
-                font-size: 12px;
-            }
+        .transit-mini h5 {
+            text-align: center;
+            margin: 4px 0;
+            font-size: 12px;
+        }
 
         .transit-note {
             width: 100%;
@@ -223,93 +230,101 @@
             resize: none;
         }
 
-        /* ===============================
-   RESPONSIVE UI (SAFE MODE)
-   =============================== */
+        /* ==========================================================
+   📱 MOBILE RESPONSIVE FIX (Option B - Keep original layout)
+   Applies when screen width < 768px
+========================================================== */
+        @media (max-width: 768px) {
 
-/* Tablets & small laptops */
-@media (max-width: 1024px) {
-    #chart {
-        width: 480px;
-        height: 480px;
-    }
+            body {
+                padding: 6px;
+                overflow-x: hidden;
+            }
 
-    #planet-table,
-    #dashaBox {
-        width: 100%;
-    }
-}
+            /* ---- Form Bar Full Width ---- */
+            #formbar {
+                flex-direction: column;
+                gap: 6px;
+                align-items: stretch;
+                width: 100%;
+            }
 
-/* Mobile devices */
-@media (max-width: 768px) {
+            #formbar input,
+            #formbar select,
+            #formbar textarea,
+            #formbar button {
+                width: 100%;
+                font-size: 15px;
+            }
 
-    body {
-        padding: 6px;
-    }
+            /* ---- Main Container Vertical ---- */
+            #container {
+                flex-direction: column;
+                width: 100%;
+                gap: 20px;
+                align-items: center;
+            }
 
-    #formbar {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 6px;
-    }
+            /* ---- Chart Auto Resize ---- */
+            #chart {
+                width: 95vw !important;
+                height: 95vw !important;
+            }
 
-    #formbar input,
-    #formbar select,
-    #formbar textarea,
-    #formbar button {
-        width: 100%;
-        font-size: 14px;
-    }
+            /* ---- Planet Table / Panchangam ---- */
+            #planet-table,
+            #tableWrap,
+            #panchangamWrap {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
 
-    #container {
-        flex-direction: column;
-        align-items: center;
-        gap: 12px;
-    }
+            /* ---- Dasha Box ---- */
+            #dashaBox {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-top: 10px;
+            }
 
-    #chart {
-        width: 95vw;
-        height: 95vw;
-        max-width: 360px;
-        max-height: 360px;
-    }
+            /* ---- Transit Panel Vertical ---- */
+            #transitPanel {
+                width: 100%;
+                flex-direction: column !important;
+            }
 
-    .chart-box {
-        font-size: 12px;
-        padding: 4px;
-    }
+            #currentTransitArea {
+                width: 100%;
+                min-height: auto !important;
+            }
 
-    #center-label {
-        font-size: 16px;
-    }
+            #transitHistory {
+                width: 100%;
+                max-width: 100%;
+                min-height: auto;
+            }
 
-    #planet-table {
-        width: 100%;
-        font-size: 12px;
-    }
+            /* ---- Modal Responsive Width ---- */
+            .modal-content {
+                width: 95% !important;
+                max-width: 95% !important;
+                left: 0;
+                right: 0;
+                margin: auto;
+            }
 
-    #dashaBox {
-        width: 100%;
-    }
+            /* ---- Chart grid text adjustment ---- */
+            .chart-box {
+                font-size: 12px;
+                padding: 3px;
+            }
 
-    #transitPanel {
-        flex-direction: column;
-    }
-
-    #transitHistory {
-        max-width: 100%;
-        border-left: none;
-        border-top: 1px solid #ddd;
-    }
-
-    .modal-content {
-        width: 95%;
-        max-height: 85vh;
-    }
-}
-
+            #center-label {
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
+
 <body>
 
     <h2>SMV ASTRO RESEARCH</h2>
@@ -323,7 +338,8 @@
             <input id="time" type="time" step="1">
             <input id="seconds" type="number" min="0" max="59" value="0" style="width:50px;">
         </div>
-        <input id="place" list="placesList" placeholder="Type City (e.g. Chennai)..." autocomplete="off" style="min-width: 220px; padding: 4px 6px; font-size: 13px;">
+        <input id="place" list="placesList" placeholder="Type City (e.g. Chennai)..." autocomplete="off"
+            style="min-width: 220px; padding: 4px 6px; font-size: 13px;">
         <datalist id="placesList"></datalist>
         <select id="ayanamsa">
             <option value="lahiri">Lahiri</option>
@@ -393,8 +409,7 @@
             <!-- 🪔 Panchangam Output Section -->
             <div id="panchangamWrap" style="display:none; margin-top:10px;">
                 <h4>🪔 பஞ்சாங்கம்</h4>
-                <div id="panchangamData"
-                     style="border:1px solid #bbb; padding:6px 8px; border-radius:6px;
+                <div id="panchangamData" style="border:1px solid #bbb; padding:6px 8px; border-radius:6px;
                     background:#fffef0; font-size:12.5px; line-height:1.3; color:#222;">
                 </div>
             </div>
@@ -402,13 +417,11 @@
 
         <!-- 🪔 Vimshottari Dasha box (top-right under View Saved) -->
         <div id="dashaOuter" style="width:100%; margin-top:10px;">
-            <div id="dashaBox"
-                 style="width:520px; min-height:220px; border:2px solid #222;
+            <div id="dashaBox" style="width:520px; min-height:220px; border:2px solid #222;
      background:#fffef8; padding:8px; border-radius:8px; overflow:auto;
      position:relative;">
                 <div style="font-weight:bold; margin-bottom:4px;">🪔 Vimshottari Dasha</div>
-                <div id="dashaTreeWrap"
-                     style="font-size:13px; line-height:1.3; color:#222;">(loading...)</div>
+                <div id="dashaTreeWrap" style="font-size:13px; line-height:1.3; color:#222;">(loading...)</div>
             </div>
 
 
@@ -418,8 +431,7 @@
                 <div class="modal-content" style="max-width:1200px;width:110%;position:relative;">
 
                     <!-- ❌ Close Button (top-right corner) -->
-                    <button onclick="closeModal('savedModal')"
-                            style="position:absolute; top:8px; right:8px; background:#f44336; color:#fff;
+                    <button onclick="closeModal('savedModal')" style="position:absolute; top:8px; right:8px; background:#f44336; color:#fff;
                        border:none; border-radius:50%; width:28px; height:28px;
                        font-size:16px; cursor:pointer; line-height:1;">
                         x
@@ -427,8 +439,8 @@
 
                     <h3 style="margin-top:0;">📁 சேமிக்கப்பட்ட ஜாதகங்கள்</h3>
                     <input type="text" id="savedSearch"
-                           placeholder="🔍 பெயர் / ID / வகை / குறிப்பு / தேதி / நேரம் மூலம் தேடு..."
-                           style="width:100%; padding:8px; margin-bottom:8px;" />
+                        placeholder="🔍 பெயர் / ID / வகை / குறிப்பு / தேதி / நேரம் மூலம் தேடு..."
+                        style="width:100%; padding:8px; margin-bottom:8px;" />
                     <div id="savedList">Loading...</div>
                     <div style="margin-top:8px; text-align:right;">
                         <button onclick="closeModal('savedModal')">Close</button>
@@ -567,27 +579,27 @@
                     };
 
                     // ✅ NEW: BHAVA CHART HANDLER (FIXED)
-                if (chartType === "bhava") {
-                    fetch("/bhava_chart", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(payload)
-                    })
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.status === "ok") {
-                            // Use bhava.js renderer which sets text to "Sripathi Bhava"
-                            if (typeof renderBhavaChart === "function") {
-                                renderBhavaChart(res);
-                            } else {
-                                console.error("renderBhavaChart not found!");
-                            }
-                            // We REMOVE any manual label setting here so bhava.js controls it.
-                            document.getElementById("tableWrap").innerHTML = "<h4>Bhava Chart</h4>";
-                        }
-                    });
-                    return; // Stop here
-                }
+                    if (chartType === "bhava") {
+                        fetch("/bhava_chart", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        })
+                            .then(r => r.json())
+                            .then(res => {
+                                if (res.status === "ok") {
+                                    // Use bhava.js renderer which sets text to "Sripathi Bhava"
+                                    if (typeof renderBhavaChart === "function") {
+                                        renderBhavaChart(res);
+                                    } else {
+                                        console.error("renderBhavaChart not found!");
+                                    }
+                                    // We REMOVE any manual label setting here so bhava.js controls it.
+                                    document.getElementById("tableWrap").innerHTML = "<h4>Bhava Chart</h4>";
+                                }
+                            });
+                        return; // Stop here
+                    }
 
                     // NORMAL RASI/DIVISIONAL CHART HANDLER
                     fetch("/generate_chart", {
@@ -669,24 +681,24 @@
 
 
                 function updateCenterLabel() {
-                const type = document.getElementById("chartType").value;
-                const label = document.getElementById("center-label");
+                    const type = document.getElementById("chartType").value;
+                    const label = document.getElementById("center-label");
 
-                if (!label) return;
+                    if (!label) return;
 
-                label.style.opacity = "0";
-                setTimeout(() => {
-                    switch (type) {
-                        case "rasi": label.textContent = "ராசி"; break;
-                        case "d9": label.textContent = "நவம்சம் (D9)"; break;
-                        case "d10": label.textContent = "தசம்சம் (D10)"; break;
-                        case "d7": label.textContent = "ஸப்தம்சம் (D7)"; break;
-                        // ✅ CHANGE THIS LINE: Let bhava.js handle the text, or set it correctly here
-                        case "bhava": label.textContent = "ஸ்ரீபதி பாவம்"; break;
-                    }
-                    label.style.opacity = "1";
-                }, 300);
-            }
+                    label.style.opacity = "0";
+                    setTimeout(() => {
+                        switch (type) {
+                            case "rasi": label.textContent = "ராசி"; break;
+                            case "d9": label.textContent = "நவம்சம் (D9)"; break;
+                            case "d10": label.textContent = "தசம்சம் (D10)"; break;
+                            case "d7": label.textContent = "ஸப்தம்சம் (D7)"; break;
+                            // ✅ CHANGE THIS LINE: Let bhava.js handle the text, or set it correctly here
+                            case "bhava": label.textContent = "ஸ்ரீபதி பாவம்"; break;
+                        }
+                        label.style.opacity = "1";
+                    }, 300);
+                }
 
                 // ✅ CORRECTED SAVE FUNCTION
                 function saveChart() {
@@ -897,97 +909,97 @@
                 }
 
                 // ✅ CORRECTED SAVE FUNCTION (Replace the one in chart.html)
-function saveChart() {
-    try {
-        // 1. Collect Inputs
-        const name = document.getElementById("name").value.trim();
-        const date = document.getElementById("date").value;
-        const time = document.getElementById("time").value;
-        const seconds = document.getElementById("seconds").value || 0;
+                function saveChart() {
+                    try {
+                        // 1. Collect Inputs
+                        const name = document.getElementById("name").value.trim();
+                        const date = document.getElementById("date").value;
+                        const time = document.getElementById("time").value;
+                        const seconds = document.getElementById("seconds").value || 0;
 
-        if (!name || !date || !time) {
-            alert("⚠️ Please fill Name, Date and Time before saving.");
-            return;
-        }
+                        if (!name || !date || !time) {
+                            alert("⚠️ Please fill Name, Date and Time before saving.");
+                            return;
+                        }
 
-        const placeInput = document.getElementById("placeSearch") || document.getElementById("place");
-        if (!placeInput) {
-            alert("⚠️ Please select or type a valid place before saving.");
-            return;
-        }
+                        const placeInput = document.getElementById("placeSearch") || document.getElementById("place");
+                        if (!placeInput) {
+                            alert("⚠️ Please select or type a valid place before saving.");
+                            return;
+                        }
 
-        const selectedPlace = {
-            city: placeInput.value || "",
-            lat: placeInput.getAttribute("data-lat") || DEFAULT_PLACE.lat,
-            lon: placeInput.getAttribute("data-lon") || DEFAULT_PLACE.lon,
-            tz: placeInput.getAttribute("data-tz") || DEFAULT_PLACE.tz
-        };
+                        const selectedPlace = {
+                            city: placeInput.value || "",
+                            lat: placeInput.getAttribute("data-lat") || DEFAULT_PLACE.lat,
+                            lon: placeInput.getAttribute("data-lon") || DEFAULT_PLACE.lon,
+                            tz: placeInput.getAttribute("data-tz") || DEFAULT_PLACE.tz
+                        };
 
-        const ayanamsa = document.getElementById("ayanamsa").value;
-        const chartType = document.getElementById("chartType").value;
-        const gender = document.getElementById("gender") ? document.getElementById("gender").value : "";
-        const tag = document.getElementById("tag") ? document.getElementById("tag").value : "";
-        const comment = document.getElementById("comment") ? document.getElementById("comment").value : "";
+                        const ayanamsa = document.getElementById("ayanamsa").value;
+                        const chartType = document.getElementById("chartType").value;
+                        const gender = document.getElementById("gender") ? document.getElementById("gender").value : "";
+                        const tag = document.getElementById("tag") ? document.getElementById("tag").value : "";
+                        const comment = document.getElementById("comment") ? document.getElementById("comment").value : "";
 
-        // Define Payload
-        const payload = {
-            id: currentEditingId || null,
-            name, date, time, seconds,
-            place_json: selectedPlace,
-            ayanamsa, chartType,
-            gender, tag, comment,
-            data_json: window.lastChartData || {}
-        };
+                        // Define Payload
+                        const payload = {
+                            id: currentEditingId || null,
+                            name, date, time, seconds,
+                            place_json: selectedPlace,
+                            ayanamsa, chartType,
+                            gender, tag, comment,
+                            data_json: window.lastChartData || {}
+                        };
 
-        // 2. Handle Bhava Chart Display
-        if (chartType === "bhava") {
-            fetch("/bhava_chart", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            })
-            .then(r => r.json())
-            .then(res => {
-                if (res.status === "ok") {
-                    if (typeof renderBhavaChart === "function") {
-                        renderBhavaChart(res);
+                        // 2. Handle Bhava Chart Display
+                        if (chartType === "bhava") {
+                            fetch("/bhava_chart", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(payload)
+                            })
+                                .then(r => r.json())
+                                .then(res => {
+                                    if (res.status === "ok") {
+                                        if (typeof renderBhavaChart === "function") {
+                                            renderBhavaChart(res);
+                                        }
+                                        // ❌ DELETED THE "PAVAM" LINE HERE
+                                        document.getElementById("tableWrap").innerHTML = "<h4>Bhava Chart</h4>";
+                                    }
+                                });
+                        }
+
+                        // 3. Save to Database
+                        console.log("💾 Saving chart →", payload);
+
+                        fetch("/update_chart_full", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        })
+                            .then(r => r.json())
+                            .then(d => {
+                                if (d.status === "ok") {
+                                    alert(currentEditingId ? "✅ Chart Updated Successfully!" : "💾 Chart Saved Successfully!");
+                                    if (d.id) {
+                                        currentEditingId = d.id;
+                                        window.currentChartId = d.id;
+                                    }
+                                } else {
+                                    alert("❌ Save failed: " + (d.message || "Unknown error"));
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Save error:", err);
+                                alert("❌ Error saving chart.");
+                            });
+
+                    } catch (e) {
+                        console.error("Unexpected saveChart error:", e);
+                        alert("❌ Unexpected error while saving chart.");
                     }
-                    // ❌ DELETED THE "PAVAM" LINE HERE
-                    document.getElementById("tableWrap").innerHTML = "<h4>Bhava Chart</h4>";
                 }
-            });
-        }
-
-        // 3. Save to Database
-        console.log("💾 Saving chart →", payload);
-
-        fetch("/update_chart_full", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload)
-        })
-        .then(r => r.json())
-        .then(d => {
-            if (d.status === "ok") {
-                alert(currentEditingId ? "✅ Chart Updated Successfully!" : "💾 Chart Saved Successfully!");
-                if (d.id) {
-                    currentEditingId = d.id;
-                    window.currentChartId = d.id;
-                }
-            } else {
-                alert("❌ Save failed: " + (d.message || "Unknown error"));
-            }
-        })
-        .catch(err => {
-            console.error("Save error:", err);
-            alert("❌ Error saving chart.");
-        });
-
-    } catch (e) {
-        console.error("Unexpected saveChart error:", e);
-        alert("❌ Unexpected error while saving chart.");
-    }
-}
                 // 🗑️ Delete chart
                 function deleteSavedChart(cid) {
                     if (!confirm("Are you sure you want to delete this chart?")) return;
@@ -1055,27 +1067,23 @@ function saveChart() {
 
 
             <script>
-                    window.addEventListener('load', function () {
-                        const btn = document.getElementById('clientNotesBtn');
-                        if (!btn) return;
-                        btn.addEventListener('click', function () {
-                            if (typeof window.toggleClientNotes === 'function') {
-                                window.toggleClientNotes();
-                            } else if (typeof window.renderClientNotes === 'function') {
-                                window.renderClientNotes();
-                            } else {
-                                console.error('Client Notes module not ready');
-                                alert('Client Notes not ready – check console for errors');
-                            }
-                        });
+                window.addEventListener('load', function () {
+                    const btn = document.getElementById('clientNotesBtn');
+                    if (!btn) return;
+                    btn.addEventListener('click', function () {
+                        if (typeof window.toggleClientNotes === 'function') {
+                            window.toggleClientNotes();
+                        } else if (typeof window.renderClientNotes === 'function') {
+                            window.renderClientNotes();
+                        } else {
+                            console.error('Client Notes module not ready');
+                            alert('Client Notes not ready – check console for errors');
+                        }
                     });
+                });
             </script>
 
 
 </body>
-        </html>
 
-
-
-
-
+</html>
