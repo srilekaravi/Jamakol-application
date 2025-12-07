@@ -14,11 +14,6 @@ from padas import calculate_padas
 from karakas import calculate_chara_karakas
 from chart_comparison import get_dual_chart_data
 import os
-
-# === ✅ Set your actual project directory ===
-BASE_DIR = r"D:\Jamakkol application\JAmakkol\JAmakkol"
-os.makedirs(BASE_DIR, exist_ok=True)
-
 # === ✅ Use your real DB files ===
 CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
 DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
