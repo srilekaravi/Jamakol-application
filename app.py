@@ -73,6 +73,7 @@ print("🪐 TRANSIT_HISTORY_DB:", TRANSIT_HISTORY_DB)
 DB_PATH = CHARTS_DB
 
 
+app = Flask(__name__)
 
 
 def ensure_dasha_table():
@@ -160,7 +161,6 @@ def compute_maandhi(*args, **kwargs):
     # Wrap stray string or other types
     return {"dbg_line": str(result), "rasi": "", "dms": "", "nak": "", "pada": "", "rasi_lord": "", "maandhi_jd": 0.0}
 
-app = Flask(__name__)
 
 DB_PATH = "charts.db"
 PLACES_DB = "places.db"
@@ -2223,13 +2223,7 @@ def compare_charts_view():
         print("Error in comparison:", e) # Print error to console for debugging
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# ================================================================
-# 🚀 Run the Flask app (THIS MUST BE THE LAST THING IN THE FILE)
-# ================================================================
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
-
-# ================================================================
+============================================================
 # 🚀 Run the Flask app
 # ================================================================
 if __name__ == "__main__":
