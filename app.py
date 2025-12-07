@@ -2223,9 +2223,10 @@ def compare_charts_view():
         print("Error in comparison:", e) # Print error to console for debugging
         return jsonify({"status": "error", "message": str(e)}), 500
 
-============================================================
+# ================================================================
 # 🚀 Run the Flask app
 # ================================================================
 if __name__ == "__main__":
     app.run(debug=True)
+
 
