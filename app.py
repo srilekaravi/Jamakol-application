@@ -28,12 +28,10 @@ CHARTS_DB = os.path.join(DATA_DIR, "charts.db")
 DASHA_DB  = os.path.join(DATA_DIR, "dasha.db")
 EVENTS_DB = os.path.join(DATA_DIR, "events.db")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATA_DIR = os.path.join(BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
-CHARTS_DB = os.path.join(DATA_DIR, "charts.db")
 
 # === ✅ Use your real DB files ===
 CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
@@ -85,7 +83,6 @@ import sqlite3
 from flask import Flask, jsonify, request
 
 # --- Always use absolute paths ---
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)  # ✅ Create if missing
 
@@ -793,7 +790,6 @@ except ImportError:
 # Path Setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PLACES_CSV = os.path.join(BASE_DIR, "india.csv") # ✅ Your CSV File
-CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
 DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
 TRANSIT_HISTORY_DB = os.path.join(BASE_DIR, "data", "transit_history.db")
@@ -804,7 +800,6 @@ TRANSIT_HISTORY_DB = os.path.join(BASE_DIR, "data", "transit_history.db")
 # Path Setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PLACES_CSV = os.path.join(BASE_DIR, "india.csv") # ✅ Your CSV File
-CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
 DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
 TRANSIT_HISTORY_DB = os.path.join(BASE_DIR, "data", "transit_history.db")
