@@ -18,6 +18,29 @@ from chart_comparison import get_dual_chart_data
 import os
 
 import os
+
+# ✅ Project base directory (Render safe)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ✅ Data folder
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
+# ✅ Database paths (USE ONLY THESE)
+CHARTS_DB = os.path.join(DATA_DIR, "charts.db")
+DASHA_DB  = os.path.join(DATA_DIR, "dasha.db")
+EVENTS_DB = os.path.join(DATA_DIR, "events.db")
+TRANSIT_HISTORY_DB = os.path.join(DATA_DIR, "transit_history.db")
+
+# ✅ Backward compatibility
+CHART_DB = CHARTS_DB
+DB_PATH = CHARTS_DB
+
+print("📊 CHARTS_DB:", CHARTS_DB)
+print("🌙 DASHA_DB:", DASHA_DB)
+print("🧾 EVENTS_DB:", EVENTS_DB)
+print("🪐 TRANSIT_HISTORY_DB:", TRANSIT_HISTORY_DB)
+
 # ✅ Project base directory (Render safe)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -90,7 +113,6 @@ os.makedirs(DATA_DIR, exist_ok=True)  # ✅ Create if missing
 TRANSIT_HISTORY_DB = os.path.join(DATA_DIR, "transit_history.db")
   # ✅ Important
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
 
 def ensure_events_table():
@@ -788,7 +810,6 @@ except ImportError:
 
 
 # Path Setup
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PLACES_CSV = os.path.join(BASE_DIR, "india.csv") # ✅ Your CSV File
 DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
@@ -798,7 +819,6 @@ TRANSIT_HISTORY_DB = os.path.join(BASE_DIR, "data", "transit_history.db")
 # 🚀 CSV LOADER (Runs Once on Startup)
 # ============================================================
 # Path Setup
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PLACES_CSV = os.path.join(BASE_DIR, "india.csv") # ✅ Your CSV File
 DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
@@ -963,7 +983,6 @@ import sqlite3
 from flask import request, jsonify
 
 # single absolute path for events DB
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 EVENTS_DB = os.path.join(DATA_DIR, "events.db")
