@@ -1,0 +1,37 @@
+<svg width="720" height="480" xmlns="http://www.w3.org/2000/svg">
+<rect width="100%" height="100%" fill="#ffffff" stroke="none"/>
+<rect x="0" y="0" width="180" height="160" fill="none" stroke="#333"/>
+<text x="8" y="18" font-size="12">Pisces</text>
+<text x="8" y="35" font-size="12">Moon 6°</text>
+<rect x="180" y="0" width="180" height="160" fill="none" stroke="#333"/>
+<text x="188" y="18" font-size="12">Aquarius</text>
+<text x="188" y="35" font-size="12">Rahu 8°</text>
+<rect x="360" y="0" width="180" height="160" fill="none" stroke="#333"/>
+<text x="368" y="18" font-size="12">Capricorn</text>
+<text x="368" y="35" font-size="12">Saturn 22°</text>
+<rect x="540" y="0" width="180" height="160" fill="none" stroke="#333"/>
+<text x="548" y="18" font-size="12">Sagittarius</text>
+<rect x="0" y="160" width="180" height="160" fill="none" stroke="#333"/>
+<text x="8" y="178" font-size="12">Aries</text>
+<text x="8" y="195" font-size="12">Mars 29°</text>
+<rect x="180" y="160" width="180" height="160" fill="none" stroke="#333"/>
+<text x="188" y="178" font-size="12">Taurus</text>
+<rect x="360" y="160" width="180" height="160" fill="none" stroke="#333"/>
+<text x="368" y="178" font-size="12">Gemini</text>
+<text x="368" y="195" font-size="12">Venus 20°</text>
+<rect x="540" y="160" width="180" height="160" fill="none" stroke="#333"/>
+<text x="548" y="178" font-size="12">Scorpio</text>
+<rect x="0" y="320" width="180" height="160" fill="none" stroke="#333"/>
+<text x="8" y="338" font-size="12">Cancer</text>
+<text x="8" y="355" font-size="12">Sun 19°</text>
+<text x="8" y="371" font-size="12">Jupiter 21°</text>
+<rect x="180" y="320" width="180" height="160" fill="none" stroke="#333"/>
+<text x="188" y="338" font-size="12">Leo</text>
+<text x="188" y="355" font-size="12">Mercury 0°</text>
+<text x="188" y="371" font-size="12">Ketu 8°</text>
+<rect x="360" y="320" width="180" height="160" fill="none" stroke="#333"/>
+<text x="368" y="338" font-size="12">Virgo</text>
+<rect x="540" y="320" width="180" height="160" fill="none" stroke="#333"/>
+<text x="548" y="338" font-size="12">Libra</text>
+<rect x="0" y="0" width="180" height="160" fill="none" stroke="#e60000" stroke-width="3"/>
+</svg>
