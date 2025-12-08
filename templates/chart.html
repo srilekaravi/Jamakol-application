@@ -244,6 +244,14 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+        /* ✅ Enable drag on mobile */
+.draggable-modal,
+.draggable-panel {
+  position: fixed !important;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
 
     </style>
 </head>
@@ -515,4 +523,5 @@
     </script>
 </body>
 </html>
+
 
