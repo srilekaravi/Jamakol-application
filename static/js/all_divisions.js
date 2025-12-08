@@ -1,4 +1,4 @@
-﻿document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
     // 1. Inject Option into Chart Type Dropdown
     const chartSelect = document.getElementById("chartType");
     if (chartSelect && !chartSelect.querySelector("option[value='all16']")) {
