@@ -1,9 +1,7 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 from flask import Flask, render_template, request, jsonify
 import sqlite3, swisseph as swe
 import datetime
-import os
-from flask import Flask
 from app_stable_backup import calc_full_table  # ✅ uses your verified calc with Maandhi, Lagna, etc.
 from maandhi import compute_maandhi
 from maandhi import compute_maandhi as _compute_maandhi
@@ -15,46 +13,17 @@ from shadbala import calculate_shadbala
 from padas import calculate_padas
 from karakas import calculate_chara_karakas
 from chart_comparison import get_dual_chart_data
-import os
+from divisional_charts import compute_all_divisions
+
+
+
+
 
 import os
 
-# ✅ Project base directory (Render safe)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# ✅ Data folder
-DATA_DIR = os.path.join(BASE_DIR, "data")
-os.makedirs(DATA_DIR, exist_ok=True)
-
-# ✅ Database paths (USE ONLY THESE)
-CHARTS_DB = os.path.join(DATA_DIR, "charts.db")
-DASHA_DB  = os.path.join(DATA_DIR, "dasha.db")
-EVENTS_DB = os.path.join(DATA_DIR, "events.db")
-TRANSIT_HISTORY_DB = os.path.join(DATA_DIR, "transit_history.db")
-
-# ✅ Backward compatibility
-CHART_DB = CHARTS_DB
-DB_PATH = CHARTS_DB
-
-print("📊 CHARTS_DB:", CHARTS_DB)
-print("🌙 DASHA_DB:", DASHA_DB)
-print("🧾 EVENTS_DB:", EVENTS_DB)
-print("🪐 TRANSIT_HISTORY_DB:", TRANSIT_HISTORY_DB)
-
-# ✅ Project base directory (Render safe)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-DATA_DIR = os.path.join(BASE_DIR, "data")
-os.makedirs(DATA_DIR, exist_ok=True)
-
-CHARTS_DB = os.path.join(DATA_DIR, "charts.db")
-DASHA_DB  = os.path.join(DATA_DIR, "dasha.db")
-EVENTS_DB = os.path.join(DATA_DIR, "events.db")
-
-
-DATA_DIR = os.path.join(BASE_DIR, "data")
-os.makedirs(DATA_DIR, exist_ok=True)
-
+# === ✅ Set your actual project directory ===
+BASE_DIR = r"D:\Jamakkol application\JAmakkol\JAmakkol"
+os.makedirs(BASE_DIR, exist_ok=True)
 
 # === ✅ Use your real DB files ===
 CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
@@ -73,27 +42,7 @@ print("🪐 TRANSIT_HISTORY_DB:", TRANSIT_HISTORY_DB)
 DB_PATH = CHARTS_DB
 
 
-app = Flask(__name__)
 
-def ensure_charts_table():
-    conn = sqlite3.connect(CHARTS_DB)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS charts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            dob TEXT,
-            tob TEXT,
-            place TEXT,
-            latitude REAL,
-            longitude REAL,
-            timezone REAL,
-            raw_json TEXT,
-            created_at TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
 
 def ensure_dasha_table():
     conn = sqlite3.connect(DASHA_DB)
@@ -126,6 +75,7 @@ import sqlite3
 from flask import Flask, jsonify, request
 
 # --- Always use absolute paths ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)  # ✅ Create if missing
 
@@ -133,6 +83,7 @@ os.makedirs(DATA_DIR, exist_ok=True)  # ✅ Create if missing
 TRANSIT_HISTORY_DB = os.path.join(DATA_DIR, "transit_history.db")
   # ✅ Important
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
 
 def ensure_events_table():
@@ -173,36 +124,20 @@ def ensure_transit_table():
     conn.commit()
     conn.close()
 
-def safe_compute_maandhi(jd_ut):
-    try:
-        result = _compute_maandhi(jd_ut)
-        if isinstance(result, dict):
-            return result
-        return {
-            "dbg_line": str(result),
-            "rasi": "",
-            "dms": "",
-            "nak": "",
-            "pada": "",
-            "rasi_lord": "",
-            "maandhi_jd": float(jd_ut)
-        }
-    except Exception as e:
-        print("⚠️ மாந்தி calculation failed:", e)
-        return None
+def compute_maandhi(*args, **kwargs):
+    result = _compute_maandhi(*args, **kwargs)
+    if isinstance(result, dict):
+        return result
+    # Wrap stray string or other types
+    return {"dbg_line": str(result), "rasi": "", "dms": "", "nak": "", "pada": "", "rasi_lord": "", "maandhi_jd": 0.0}
 
+app = Flask(__name__)
 
 DB_PATH = "charts.db"
 PLACES_DB = "places.db"
 DB_PATH = CHARTS_DB
   # ✅ ensure all chart data goes to /data/charts.db
 
-
-try:
-    maandhi = safe_compute_maandhi(jd_ut)
-except Exception as e:
-    print("⚠️ மாந்தி calculation failed:", e)
-    maandhi = None
 
 # -------------------- MAIN PAGE --------------------
 @app.route("/")
@@ -846,7 +781,9 @@ except ImportError:
 
 
 # Path Setup
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PLACES_CSV = os.path.join(BASE_DIR, "india.csv") # ✅ Your CSV File
+CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
 DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
 TRANSIT_HISTORY_DB = os.path.join(BASE_DIR, "data", "transit_history.db")
@@ -855,7 +792,9 @@ TRANSIT_HISTORY_DB = os.path.join(BASE_DIR, "data", "transit_history.db")
 # 🚀 CSV LOADER (Runs Once on Startup)
 # ============================================================
 # Path Setup
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PLACES_CSV = os.path.join(BASE_DIR, "india.csv") # ✅ Your CSV File
+CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
 DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
 TRANSIT_HISTORY_DB = os.path.join(BASE_DIR, "data", "transit_history.db")
@@ -1019,6 +958,7 @@ import sqlite3
 from flask import request, jsonify
 
 # single absolute path for events DB
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 EVENTS_DB = os.path.join(DATA_DIR, "events.db")
@@ -2259,10 +2199,117 @@ def compare_charts_view():
         print("Error in comparison:", e) # Print error to console for debugging
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# --- MATCH HISTORY TRACKING ---
+MATCH_DB = "match_history.db"
+
+def ensure_match_db():
+    conn = sqlite3.connect(MATCH_DB)
+    cur = conn.cursor()
+    # Stores: Who (Name), Gender, Matched With (Partner Name), Date, Score
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            gender TEXT,
+            partner_name TEXT,
+            score TEXT,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+ensure_match_db()
+
+@app.route("/log_match", methods=["POST"])
+def log_match():
+    try:
+        data = request.get_json()
+        boy = data.get("boy_name")
+        girl = data.get("girl_name")
+        score = data.get("score")
+
+        conn = sqlite3.connect(MATCH_DB)
+        cur = conn.cursor()
+        
+        # Log Boy's History
+        cur.execute("INSERT INTO history (name, gender, partner_name, score) VALUES (?, ?, ?, ?)", (boy, "Male", girl, score))
+        # Log Girl's History
+        cur.execute("INSERT INTO history (name, gender, partner_name, score) VALUES (?, ?, ?, ?)", (girl, "Female", boy, score))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+@app.route("/get_match_count", methods=["POST"])
+def get_match_count():
+    try:
+        data = request.get_json()
+        name = data.get("name")
+        conn = sqlite3.connect(MATCH_DB)
+        cur = conn.cursor()
+        
+        # Count distinct partners checked
+        cur.execute("SELECT COUNT(DISTINCT partner_name) FROM history WHERE name = ?", (name,))
+        count = cur.fetchone()[0]
+        
+        # Optional: Get last 5 partners
+        cur.execute("SELECT partner_name, score, date(timestamp) FROM history WHERE name = ? ORDER BY id DESC LIMIT 5", (name,))
+        recent = [{"partner": r[0], "score": r[1], "date": r[2]} for r in cur.fetchall()]
+        
+        conn.close()
+        return jsonify({"status": "ok", "count": count, "recent": recent})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+
+# ===================================================================
+
+# All division drop down option
+#===================================================================
+@app.route("/get_all_divisions", methods=["POST"])
+def get_all_divisions():
+    try:
+        data = request.get_json()
+        # Parse inputs
+        if "date" in data:
+            d_parts = data["date"].split("-")
+            t_parts = data["time"].split(":")
+            y, m, d = int(d_parts[0]), int(d_parts[1]), int(d_parts[2])
+            h, mi = int(t_parts[0]), int(t_parts[1])
+            s = 0 # default
+        else:
+            return jsonify({"status": "error", "message": "Missing Date/Time"})
+
+        lat = float(data.get("lat"))
+        lon = float(data.get("lon"))
+        tz = float(data.get("tz"))
+
+        # Set Ayanamsa
+        ayanamsa = data.get("ayanamsa", "lahiri")
+        if ayanamsa == "raman": swe.set_sid_mode(swe.SIDM_RAMAN)
+        elif ayanamsa == "kp": swe.set_sid_mode(swe.SIDM_KRISHNAMURTI)
+        else: swe.set_sid_mode(swe.SIDM_LAHIRI)
+
+        # Calc JD
+        jd = swe.julday(y, m, d, h + mi/60.0 + s/3600.0) - tz/24.0
+
+        # Compute
+        charts = compute_all_divisions(jd, lat, lon, tz)
+
+        return jsonify({"status": "ok", "charts": charts})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
+# ================================================================
+# 🚀 Run the Flask app (THIS MUST BE THE LAST THING IN THE FILE)
+# ================================================================
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
+
 # ================================================================
 # 🚀 Run the Flask app
 # ================================================================
 if __name__ == "__main__":
     app.run(debug=True)
-
 
