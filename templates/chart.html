@@ -6,7 +6,6 @@
 
     <title>ஜாதகக் கட்டம்</title>
     <style>
-        /* --- GLOBAL BASICS --- */
         body {
             font-family: "Noto Sans Tamil", sans-serif;
             background: #fffef8;
@@ -14,106 +13,144 @@
             margin: 0;
             padding: 10px;
             box-sizing: border-box;
-            font-size: 14px;
         }
 
         h2 {
             text-align: center;
-            margin: 5px 0 15px 0;
-            font-size: 20px;
-            color: #000080;
+            margin-bottom: 10px;
         }
 
-        /* --- 1. UNIFORM GRID FORM LAYOUT (DESKTOP) --- */
+        /* --- Desktop First Layout --- */
         #formbar {
-            display: grid;
-            /* Magic Grid: Creates columns that are at least 130px wide 
-               and share the remaining space equally. 
-            */
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 8px;
-            margin-bottom: 15px;
-            align-items: center;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px;
         }
 
-        /* Make all Inputs, Selects, Buttons, Textareas EXACTLY the same size */
-        #formbar input, 
-        #formbar select, 
-        #formbar button, 
-        #formbar textarea {
-            width: 100%;
-            height: 34px;       /* Fixed Compact Height */
-            padding: 4px 6px;   /* Small padding */
-            font-size: 13px;    /* Uniform font size */
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            background: #fff;
+            #formbar input, #formbar select, #formbar textarea {
+                padding: 4px 6px;
+                font-size: 13px;
+            }
+
+        #place {
+            min-width: 220px;
         }
 
-        /* Specific adjustments */
-        #formbar textarea {
-            resize: none;       /* Prevent manual resizing */
-            line-height: 24px;  /* Center text vertically */
-        }
-        
-        #formbar button {
-            background: #ff9800;
+        /* --------------------------------------------------
+           UPDATED BUTTON STYLE (Option A – Small & Modern)
+        -------------------------------------------------- */
+        button {
+            background: #ff8800;
             color: white;
             border: none;
+            padding: 2px 6px; /* SIZE REDUCED */
+            font-size: 12px; /* SMALLER FONT */
+            border-radius: 4px; /* MODERN SHAPE */
             cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 11px;    /* Slightly smaller text for buttons */
+            transition: 0.2s ease;
         }
 
-        #formbar button:hover {
-            background: #e68900;
+            button:hover {
+                background: #e06f00;
+                transform: scale(1.03);
+            }
+
+        /* Special button (unchanged except new style applies) */
+        #newChartBtn {
+            background: #ff5722;
+            padding: 2px 6px;
+            font-size: 12px;
+            border-radius: 4px;
+            font-weight: 600;
         }
 
-        /* The Date/Time group needs to handle its own internal flex */
-        .datetime-group {
-            display: flex;
-            gap: 5px;
-            grid-column: span 1; /* Takes up 1 cell in the grid */
-        }
-        .datetime-group input {
-            width: 100% !important; 
-        }
+            #newChartBtn:hover {
+                background: #e64a19;
+            }
 
-        /* --- 2. CHART AREA LAYOUT --- */
         #container {
             display: flex;
             gap: 20px;
             justify-content: center;
             align-items: flex-start;
-            flex-wrap: wrap;
         }
 
-        /* Chart Grid */
+        /* Chart Styling */
         #chart {
-            width: 500px;
-            height: 500px;
+            width: 600px;
+            height: 600px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
-            gap: 2px;
+            gap: 1px;
             border: 3px solid #000;
             background: #fff;
             position: relative;
-            flex-shrink: 0;
         }
 
         .chart-box {
             border: 1px solid #000;
-            padding: 2px;
+            border-radius: 4px;
+            padding: 4px;
             text-align: center;
-            font-size: 13px;
+            font-size: 14px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            line-height: 1.2;
+        }
+        .chart-box span {
+            display: block;
+            margin-bottom: 2px; /* small spacing between planet name and degree */
+        }
+
+        .chart-box small {
+            display: block;
+            margin-bottom: 4px; /* small spacing between planet entries */
+        }
+
+        .chart-box br {
+            display: none; /* remove <br> spacing completely */
+        }
+
+
+
+        #planet-table {
+            border-collapse: collapse;
+            width: 420px;
+            font-size: 13px;
+        }
+
+            #planet-table th, #planet-table td {
+                border: 1px solid #999;
+                padding: 4px;
+                text-align: center;
+            }
+
+            #planet-table th {
+                background: #ffb84d;
+            }
+
+        #panchangamWrap {
+            width: 100%;
+            max-width: 420px;
+            margin-top: 8px;
+        }
+
+        #panchangamData {
+            box-sizing: border-box;
+            width: 100%;
+        }
+
+        #panchangamWrap h4 {
+            background: #ffb84d;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 4px 4px 0 0;
+            margin: 0 0 4px 0;
+            font-size: 13px;
         }
 
         #center-label {
@@ -123,120 +160,732 @@
             transform: translate(-50%, -50%);
             font-weight: bold;
             color: darkgreen;
-            font-size: 20px;
+            font-size: 22px;
             pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
         }
 
-        /* --- 3. PANELS & TABLES --- */
-        #tableWrapContainer {
-            flex: 1;
-            min-width: 300px;
-            max-width: 450px;
-        }
-
-        #planet-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            margin-bottom: 10px;
-        }
-        #planet-table th, #planet-table td {
-            border: 1px solid #999;
-            padding: 4px;
-            text-align: center;
-        }
-        #planet-table th { background: #ffb84d; }
-
-        /* Panchangam Box */
-        #panchangamWrap { width: 100%; margin-top: 5px; }
-        #panchangamWrap h4 {
-            background: #ffb84d; margin: 0; padding: 5px; font-size: 13px;
-            border-radius: 4px 4px 0 0;
-        }
-        #panchangamData {
-            border: 1px solid #bbb; padding: 8px; border-radius: 0 0 4px 4px;
-            background: #fffef0; font-size: 12px; line-height: 1.4;
-        }
-
-        /* Transit Panel */
-        #transitPanel {
-            display: flex; flex-direction: row; gap: 10px; margin-top: 8px; width: 100%;
-        }
-        #currentTransitArea { flex: 2; }
-        #transitHistory {
-            flex: 1; min-width: 200px; max-height: 400px; overflow-y: auto;
-            background: #f9f9f9; padding: 5px; border: 1px solid #ddd;
-        }
-
-        /* --- 4. MODALS & DRAGGABLES --- */
+        /* --- Modal Styling --- */
         .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); display: none;
-            justify-content: center; align-items: center; z-index: 2000;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
         }
+
         .modal-content {
-            background: #fff; padding: 15px; border-radius: 8px;
-            width: 400px; max-width: 90%; max-height: 80vh; overflow-y: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 420px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
-        /* --- 5. MOBILE RESPONSIVE TWEAKS --- */
+        .modal button {
+            margin: 3px;
+        }
+
+        /* --- IMPROVED MOBILE FIXES --- */
         @media (max-width: 768px) {
-            body { padding: 5px; }
 
-            /* Grid Layout for Mobile: 2 Columns for everything */
+            body {
+                padding: 5px;
+                overflow-x: hidden;
+            }
+
+            #container {
+                flex-direction: column !important;
+                align-items: center !important;
+                width: 100% !important;
+                gap: 10px;
+            }
+
             #formbar {
-                grid-template-columns: 1fr 1fr; /* Force 2 equal columns */
-                gap: 6px;
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr);
+                width: 100% !important;
+                gap: 6px !important;
             }
 
-            /* Exceptions: Name and Place take full width for better typing */
-            #name, #place, #comment {
-                grid-column: span 2; 
-            }
+                #formbar input,
+                #formbar select,
+                #formbar textarea {
+                    width: 100% !important;
+                    font-size: 13px !important;
+                }
 
-            /* Buttons: Already handled by the grid (will be 2 per row) */
-            
-            #container { flex-direction: column; align-items: center; }
-            
+                #formbar button {
+                    width: 100% !important;
+                    padding: 6px !important;
+                    height: auto !important;
+                }
+
             #chart {
-  width: 100%;
-  max-width: 600px;
-  aspect-ratio: 1 / 1;   /* ✅ keeps square */
-}
-
-#planet-table,
-#dashaBox,
-.modal-content {
-  max-height: 85vh;
-  overflow-y: auto;
-}
-@media (max-width: 768px) {
-  #currentTransitArea {
-    min-height: auto;
-  }
-}
-
-            #tableWrapContainer, #dashaBox, #transitPanel {
-                width: 100% !important; max-width: 100% !important;
+                width: 94vw !important;
+                height: 94vw !important;
+                max-width: none !important;
+                max-height: none !important;
             }
 
-            #transitPanel { flex-direction: column; }
+            #center-label {
+                font-size: 16px !important;
+            }
+
+            #tableWrap,
+            #planet-table {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: auto !important;
+            }
+
+            #panchangamWrap {
+                max-width: 100% !important;
+            }
+
+            #dashaOuter,
+            #dashaBox {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+
+            #dashaBox {
+                min-height: 180px !important;
+            }
+
+            #transitPanel,
+            #transitBox,
+            #transitHistory {
+                width: 100% !important;
+            }
+
+            .modal-content {
+                width: 95% !important;
+                max-width: 95% !important;
+                max-height: 90vh !important;
+            }
         }
-        #formbar button {
-  width: calc(50% - 4px);
-  min-height: 44px;      /* ✅ Apple touch rule */
-  font-size: 14px;
-}
-@media (max-width: 360px) {
-  #formbar button {
-    width: 100%;
-  }
-}
-.chart-box {
-  overflow: hidden;
-  word-break: break-word;
-}
-.chart-box small {
+
+    </style>
+</head>
+<body>
+
+    <h2>SMV ASTRO RESEARCH</h2>
+
+    <div id="formbar">
+        <input id="name" list="nameList" placeholder="பெயர்">
+        <datalist id="nameList"></datalist>
+
+        <input id="date" type="date">
+        <div>
+            <input id="time" type="time" step="1">
+            <input id="seconds" type="number" min="0" max="59" value="0" placeholder="Sec">
+        </div>
+
+        <input id="place" list="placesList" placeholder="Type City (e.g. Chennai)..." autocomplete="off">
+        <datalist id="placesList"></datalist>
+
+        <select id="ayanamsa">
+            <option value="lahiri">Lahiri</option>
+            <option value="raman">Raman</option>
+            <option value="kp">KP</option>
+            <option value="yukteshwar">Yukteshwar</option>
+        </select>
+
+        <select id="chartType">
+            <option value="rasi">ராசி</option>
+            <option value="bhava">Bhava Chart</option>
+            <option value="d9">D9 - நவம்சம்</option>
+            <option value="d10">D10 - தசம்சம்</option>
+            <option value="d7">D7 - ஸப்தம்சம்</option>
+        </select>
+
+        <select id="gender">
+            <option value="">பாலினம் (Gender)</option>
+            <option value="Male">ஆண் (Male)</option>
+            <option value="Female">பெண் (Female)</option>
+            <option value="Other">மற்றவை (Other)</option>
+        </select>
+
+        <select id="tag">
+            <option value="">வகை (Tag)</option>
+            <option value="Client">வாடிக்கையாளர் (Client)</option>
+            <option value="Family">குடும்பம் (Family)</option>
+            <option value="Friend">நண்பர் (Friend)</option>
+            <option value="Other">மற்றவை (Other)</option>
+        </select>
+
+        <textarea id="comment" rows="2" placeholder="குறிப்புகள் / Notes (optional)"></textarea>
+
+        <button onclick="openAddPlace()">+ Add Place</button>
+        <button onclick="saveChart()">💾 Save</button>
+        <button onclick="openSavedCharts()">📂 View Saved</button>
+        <button id="newChartBtn">➕ New Chart</button>
+        <button id="toggleTransitBtn">🪐 கோட்சார கிரகநிலைகள்</button>
+        <button id="clientNotesBtn">🗒 Client Notes</button>
+    </div>
+
+    <div id="container">
+
+
+        <div id="transitPanel" style="display:none;">
+            <div id="currentTransitArea">
+                <div id="transitBox"></div>
+            </div>
+            <aside id="transitHistory">
+                <h4>📜 Transit History</h4>
+                <div id="transitHistoryList"></div>
+            </aside>
+        </div>
+
+
+
+        <div id="tableWrapContainer" style="display:flex; flex-direction:column; align-items:flex-start; width:100%;">
+            <div id="tableWrap" style="width:100%;"></div>
+
+            <div id="panchangamWrap" style="display:none; margin-top:10px;">
+                <h4>🪔 பஞ்சாங்கம்</h4>
+                <div id="panchangamData"
+                     style="border:1px solid #bbb; padding:6px 8px; border-radius:6px;
+                    background:#fffef0; font-size:12.5px; line-height:1.3; color:#222;">
+                </div>
+            </div>
+        </div>
+
+        <div style="position: relative;">
+            <div id="chart"></div>
+            <div id="center-label">ராசி</div>
+        </div>
+
+        <div id="dashaOuter" style="width:100%; margin-top:10px;">
+            <div id="dashaBox"
+                 style="width:520px; min-height:220px; border:2px solid #222;
+                 background:#fffef8; padding:8px; border-radius:8px; overflow:auto;
+                 position:relative;">
+                <div style="font-weight:bold; margin-bottom:4px;">🪔 Vimshottari Dasha</div>
+                <div id="dashaTreeWrap"
+                     style="font-size:13px; line-height:1.3; color:#222;">(loading...)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="savedModal" style="display:none;">
+        <div class="modal-content" style="max-width:1200px;width:110%;position:relative;">
+            <button onclick="closeModal('savedModal')"
+                    style="position:absolute; top:8px; right:8px; background:#f44336; color:#fff;
+                    border:none; border-radius:50%; width:28px; height:28px;
+                    font-size:16px; cursor:pointer; line-height:1;">
+                x
+            </button>
+
+            <h3 style="margin-top:0;">📁 சேமிக்கப்பட்ட ஜாதகங்கள்</h3>
+            <input type="text" id="savedSearch"
+                   placeholder="🔍 பெயர் / ID / குறிப்பு தேடு..."
+                   style="width:100%; padding:8px; margin-bottom:8px; box-sizing:border-box;" />
+            <div id="savedList" style="overflow-x:auto;">Loading...</div>
+            <div style="margin-top:8px; text-align:right;">
+                <button onclick="closeModal('savedModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="addPlaceModal">
+        <div class="modal-content">
+            <h3>புதிய இடம் சேர்க்க</h3>
+            <input id="pCity" placeholder="City" style="width:100%; margin-bottom:5px;"><br>
+            <input id="pState" placeholder="State" style="width:100%; margin-bottom:5px;"><br>
+            <input id="pCountry" placeholder="Country" style="width:100%; margin-bottom:5px;"><br>
+            <input id="pLat" placeholder="Latitude" style="width:100%; margin-bottom:5px;"><br>
+            <input id="pLon" placeholder="Longitude" style="width:100%; margin-bottom:5px;"><br>
+            <input id="pTz" placeholder="Timezone (e.g., 5.5)" style="width:100%; margin-bottom:5px;"><br><br>
+            <button onclick="addPlace()">Save Place</button>
+            <button onclick="closeModal('addPlaceModal')">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const DEFAULT_PLACE = { city: "Chennai", lat: 13.0827, lon: 80.2707, tz: 5.5 };
+        const planetColors = {
+            "சூரியன்": "#e67e22", "சந்திரன்": "#3498db", "செவ்வாய்": "#ff4d4d",
+            "புதன்": "#27ae60", "குரு": "#f1c40f", "சுக்கிரன்": "#f78fb3",
+            "சனி": "#2c3e50", "ராகு": "#8e44ad", "கேது": "#95a5a6",
+            "மாந்தி": "#34495e", "லக்னம்": "#ff7f00"
+        };
+
+        async function loadPlaces() {
+            const res = await fetch("/list_places");
+            const places = await res.json();
+
+            let input = document.getElementById("placeSearch");
+            if (!input) {
+                input = document.createElement("input");
+                input.id = "placeSearch";
+                input.setAttribute("list", "placesList");
+                input.setAttribute("placeholder", "Type city name...");
+                input.style.width = "100%"; // Changed to 100% for better layout
+            }
+
+            let dataList = document.getElementById("placesList");
+            if (!dataList) {
+                dataList = document.createElement("datalist");
+                dataList.id = "placesList";
+                document.body.appendChild(dataList);
+            }
+            dataList.innerHTML = "";
+
+            places.forEach(p => {
+                const opt = document.createElement("option");
+                opt.value = `${p.city_en} / ${p.city}`;
+                opt.setAttribute("data-lat", p.lat);
+                opt.setAttribute("data-lon", p.lon);
+                opt.setAttribute("data-tz", p.tz);
+                dataList.appendChild(opt);
+            });
+
+            const sel = document.getElementById("place");
+            if (sel && !document.getElementById("placeSearch")) {
+                sel.parentNode.replaceChild(input, sel);
+            }
+
+            input.value = "Chennai / சென்னை";
+            const match = [...dataList.options].find(o => o.value.startsWith("Chennai"));
+            if (match) {
+                input.setAttribute("data-lat", match.getAttribute("data-lat"));
+                input.setAttribute("data-lon", match.getAttribute("data-lon"));
+                input.setAttribute("data-tz", match.getAttribute("data-tz"));
+            }
+
+            input.addEventListener("input", e => {
+                const val = e.target.value;
+                const match = [...dataList.options].find(o =>
+                    o.value.toLowerCase().startsWith(val.toLowerCase())
+                );
+                if (match) {
+                    input.setAttribute("data-lat", match.getAttribute("data-lat"));
+                    input.setAttribute("data-lon", match.getAttribute("data-lon"));
+                    input.setAttribute("data-tz", match.getAttribute("data-tz"));
+                    generateChart();
+                }
+            });
+
+            generateChart();
+        }
+
+        function addAutoUpdateListeners() {
+            const ids = ["date", "time", "seconds", "ayanamsa", "chartType", "placeSearch"];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener("change", generateChart);
+                    el.addEventListener("input", generateChart);
+                }
+            });
+        }
+
+        window.addEventListener("load", () => {
+            loadPlaces();
+            addAutoUpdateListeners();
+            const now = new Date();
+            document.getElementById("date").value = now.toISOString().slice(0, 10);
+            document.getElementById("time").value = now.toTimeString().slice(0, 8);
+            document.getElementById("seconds").value = now.getSeconds();
+        });
+
+        function generateChart() {
+            const dateVal = document.getElementById("date").value;
+            const timeVal = document.getElementById("time").value;
+            const seconds = parseInt(document.getElementById("seconds").value || 0);
+            const placeInput = document.getElementById("placeSearch");
+            const place = {
+                lat: parseFloat(placeInput.getAttribute("data-lat")) || DEFAULT_PLACE.lat,
+                lon: parseFloat(placeInput.getAttribute("data-lon")) || DEFAULT_PLACE.lon,
+                tz: parseFloat(placeInput.getAttribute("data-tz")) || DEFAULT_PLACE.tz
+            };
+            const ayanamsa = document.getElementById("ayanamsa").value;
+            const chartType = document.getElementById("chartType").value;
+
+            if (!dateVal) return;
+
+            const [year, month, day] = dateVal.split("-").map(x => parseInt(x));
+            const [hour, minute] = timeVal.split(":").map(x => parseInt(x));
+            const payload = {
+                year, month, day, hour, minute, second: seconds,
+                lat: place.lat, lon: place.lon, tz: place.tz,
+                ayanamsa, chartType
+            };
+
+            if (chartType === "bhava") {
+                fetch("/bhava_chart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === "ok") {
+                        if (typeof renderBhavaChart === "function") {
+                            renderBhavaChart(res);
+                        } else {
+                            console.error("renderBhavaChart not found!");
+                        }
+                        document.getElementById("tableWrap").innerHTML = "<h4>Bhava Chart</h4>";
+                    }
+                });
+                return;
+            }
+
+            fetch("/generate_chart", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(res => {
+                if (res.status === "ok") {
+                    renderChart(res.rows);
+                    const labelMap = {
+                        rasi: "🪐 Rasi Chart Planets",
+                        d9: "🪐 Navamsa (D9) Planets",
+                        d10: "🪐 Dasamsa (D10) Planets",
+                        d7: "🪐 Saptamsa (D7) Planets"
+                    };
+                    document.getElementById("tableWrap").innerHTML =
+                        `<h4>${labelMap[chartType] || "Planets"}</h4>` + res.html;
+                    updateCenterLabel();
+                }
+            });
+        }
+
+        function renderChart(rows) {
+            const tamilRasis = ["மேஷம்", "ரிஷபம்", "மிதுனம்", "கடகம்", "சிம்மம்", "கன்னி",
+                "துலாம்", "விருச்சிகம்", "தனுசு", "மகரம்", "கும்பம்", "மீனம்"];
+            const grid = {}; tamilRasis.forEach(r => grid[r] = []);
+            let lagnaRasi = null;
+
+            rows.forEach(r => {
+                if (!r.name || r.name === "ராசி") return;
+                const rasi = r.rasi || "";
+                if (!rasi || !grid.hasOwnProperty(rasi)) return;
+
+                const color = planetColors[r.name] || "#000";
+                if (r.name === "லக்னம்") lagnaRasi = rasi;
+                const label = r.grid_label || `(${r.name})`;
+                let shortDeg = "";
+                if (r.dms) {
+                    let match = r.dms.match(/(\d+)[°:] ?(\d+)/);
+                    if (match) {
+                        const d = match[1];
+                        const m = match[2];
+                        shortDeg = `${d}°${m}'`;
+                    } else if (typeof r.dms === "string" && r.dms.trim() !== "") {
+                        shortDeg = r.dms.replace(/[^\d°′]/g, "").slice(0, 6);
+                    }
+                }
+
+                grid[rasi].push(
+                    `<span style='color:${color};font-weight:bold;'>${label}</span>` +
+                    (shortDeg ? `<small>${shortDeg}</small>` : "")
+                );
+            });
+
+            const order = ["மீனம்", "மேஷம்", "ரிஷபம்", "மிதுனம்",
+                "கும்பம்", null, null, "கடகம்",
+                "மகரம்", null, null, "சிம்மம்",
+                "தனுசு", "விருச்சிகம்", "துலாம்", "கன்னி"];
+
+            const chart = document.getElementById("chart");
+            chart.innerHTML = "";
+            order.forEach(r => {
+                if (r === null) chart.innerHTML += "<div></div>";
+                else {
+                    const hl = (r === lagnaRasi);
+                    chart.innerHTML += `<div class='chart-box' style='background:${hl ? "#fff8e1" : "#fff"}; border-color:${hl ? "#ff9800" : "#000"};'>${grid[r].join("<br>")}</div>`;
+                }
+            });
+        }
+
+        function updateCenterLabel() {
+            const type = document.getElementById("chartType").value;
+            const label = document.getElementById("center-label");
+            if (!label) return;
+            label.style.opacity = "0";
+            setTimeout(() => {
+                switch (type) {
+                    case "rasi": label.textContent = "ராசி"; break;
+                    case "d9": label.textContent = "நவம்சம் (D9)"; break;
+                    case "d10": label.textContent = "தசம்சம் (D10)"; break;
+                    case "d7": label.textContent = "ஸப்தம்சம் (D7)"; break;
+                    case "bhava": label.textContent = "ஸ்ரீபதி பாவம்"; break;
+                }
+                label.style.opacity = "1";
+            }, 300);
+        }
+
+        let currentEditingId = null;
+
+        function openSavedCharts() {
+            fetch("/list_charts")
+                .then(r => r.json())
+                .then(list => {
+                    if (!Array.isArray(list) || list.length === 0) {
+                        document.getElementById("savedList").innerHTML = "<p>⚠️ No saved charts found.</p>";
+                        document.getElementById("savedModal").style.display = "flex";
+                        return;
+                    }
+                    let html = `<table style="width:100%;">
+                        <tr>
+                            <th>ID</th><th>பெயர்</th><th>பிறந்த தேதி</th><th>குறிப்பு</th><th>செயல்கள்</th>
+                        </tr>`;
+                    list.forEach(r => {
+                        html += `<tr>
+                            <td>${r.id}</td>
+                            <td>${r.name || ""}</td>
+                            <td>${r.date || ""}</td>
+                            <td>${r.comment || "-"}</td>
+                            <td>
+                                <button onclick="loadSavedChart(${r.id})">📄 Load</button>
+                                <button onclick="deleteSavedChart(${r.id})">🗑️ Del</button>
+                            </td>
+                        </tr>`;
+                    });
+                    html += "</table>";
+                    document.getElementById("savedList").innerHTML = html;
+                    document.getElementById("savedModal").style.display = "flex";
+                });
+        }
+
+        function loadSavedChart(cid) {
+            fetch(`/get_chart/${cid}`)
+                .then(r => r.json())
+                .then(async res => {
+                    if (res.status !== "ok" || !res.chart) {
+                        alert("Chart not found.");
+                        return;
+                    }
+                    const chart = res.chart;
+                    currentEditingId = chart.id;
+                    window.currentChartId = cid;
+
+                    document.getElementById("name").value = chart.name || "";
+                    document.getElementById("date").value = chart.date || "";
+                    document.getElementById("time").value = chart.time || "";
+                    if (chart.gender) document.getElementById("gender").value = chart.gender;
+                    if (chart.tag) document.getElementById("tag").value = chart.tag;
+                    if (chart.comment) document.getElementById("comment").value = chart.comment;
+
+                    const pj = chart.place_json || {};
+                    const placeField = document.getElementById("placeSearch") || document.getElementById("place");
+                    if (placeField) {
+                        placeField.value = pj.city || "";
+                        placeField.setAttribute("data-lat", pj.lat || 13.0827);
+                        placeField.setAttribute("data-lon", pj.lon || 80.2707);
+                        placeField.setAttribute("data-tz", pj.tz || 5.5);
+                    }
+
+                    window.lastChartData = chart.data_json || {};
+                    generateChart();
+
+                    await renderClientNotes(window.currentChartId);
+                    renderTransitVersionsList(window.currentChartId);
+                    loadTransitHistory(window.currentChartId);
+                    loadTransitHistoryMini(window.currentChartId);
+
+                    saveCurrentTransitSnapshot(cid);
+                    closeModal("savedModal");
+                    alert(`✅ Loaded chart #${chart.id} (${chart.name})`);
+                });
+        }
+
+        function saveChart() {
+            try {
+                const name = document.getElementById("name").value.trim();
+                const date = document.getElementById("date").value;
+                const time = document.getElementById("time").value;
+                const seconds = document.getElementById("seconds").value || 0;
+
+                if (!name || !date || !time) {
+                    alert("⚠️ Please fill Name, Date and Time.");
+                    return;
+                }
+
+                const placeInput = document.getElementById("placeSearch") || document.getElementById("place");
+                if (!placeInput) {
+                    alert("⚠️ Please select a valid place.");
+                    return;
+                }
+
+                const selectedPlace = {
+                    city: placeInput.value || "",
+                    lat: placeInput.getAttribute("data-lat") || DEFAULT_PLACE.lat,
+                    lon: placeInput.getAttribute("data-lon") || DEFAULT_PLACE.lon,
+                    tz: placeInput.getAttribute("data-tz") || DEFAULT_PLACE.tz
+                };
+
+                const ayanamsa = document.getElementById("ayanamsa").value;
+                const chartType = document.getElementById("chartType").value;
+                const gender = document.getElementById("gender") ? document.getElementById("gender").value : "";
+                const tag = document.getElementById("tag") ? document.getElementById("tag").value : "";
+                const comment = document.getElementById("comment") ? document.getElementById("comment").value : "";
+
+                const payload = {
+                    id: currentEditingId || null,
+                    name, date, time, seconds,
+                    place_json: selectedPlace,
+                    ayanamsa, chartType,
+                    gender, tag, comment,
+                    data_json: window.lastChartData || {}
+                };
+
+                fetch("/update_chart_full", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === "ok") {
+                        alert(currentEditingId ? "✅ Updated!" : "💾 Saved!");
+                        if (d.id) {
+                            currentEditingId = d.id;
+                            window.currentChartId = d.id;
+                        }
+                    } else {
+                        alert("❌ Save failed: " + d.message);
+                    }
+                });
+
+            } catch (e) {
+                console.error("Save error:", e);
+                alert("❌ Unexpected error.");
+            }
+        }
+
+        function deleteSavedChart(cid) {
+            if (!confirm("Are you sure?")) return;
+            fetch(`/delete_chart/${cid}`, { method: "POST" })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === "ok") {
+                        alert("🗑️ Deleted.");
+                        openSavedCharts();
+                    } else {
+                        alert("❌ Failed.");
+                    }
+                });
+        }
+
+        function addPlace() { /* ... */ }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const addVersionBtn = document.getElementById("createTransitVersionBtn");
+            if (addVersionBtn) {
+                addVersionBtn.addEventListener("click", () => {
+                    if (window.currentChartId) createNewTransitVersion(window.currentChartId);
+                    else alert("Open a chart first.");
+                });
+            }
+        });
+    </script>
+
+    <script src="/static/js/rasiChart.js"></script>
+    <script src="/static/js/core.js"></script>
+    <script src="/static/js/panchangam.js"></script>
+    <script src="/static/js/transit.js"></script>
+    <script src="/static/js/transit_history.js"></script>
+    <script src="/static/js/vimshottari.js"></script>
+    <script src="/static/js/event_summary.js"></script>
+    <script src="/static/js/ashtakavarga.js"></script>
+    <script src="/static/js/shadbala.js"></script>
+    <script src="/static/js/bhava.js?v=2"></script>
+    <script src="/static/js/kp.js"></script>
+    <script src="/static/js/padas.js"></script>
+    <script src="/static/js/karakas.js"></script>
+    <script src="/static/js/comparison.js"></script>
+
+    <script>
+        window.addEventListener('load', function () {
+            const btn = document.getElementById('clientNotesBtn');
+            if (!btn) return;
+            btn.addEventListener('click', function () {
+                if (typeof window.toggleClientNotes === 'function') window.toggleClientNotes();
+                else if (typeof window.renderClientNotes === 'function') window.renderClientNotes();
+                else console.error('Client Notes module not ready');
+            });
+        });
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Function to make an element draggable via Touch
+        function addTouchSupport(elmnt) {
+            var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            // Look for the header (usually class 'notepad-header' or similar)
+            var header = elmnt.querySelector(".notepad-header") || elmnt.querySelector("h4") || elmnt;
+
+            if(header) {
+                header.addEventListener("touchstart", dragTouchStart, {passive: false});
+            }
+
+            function dragTouchStart(e) {
+                // e.preventDefault(); // Optional: prevent scrolling while dragging
+                var touch = e.touches[0];
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                document.addEventListener("touchend", closeDragElement, {passive: false});
+                document.addEventListener("touchmove", elementDrag, {passive: false});
+            }
+
+            function elementDrag(e) {
+                var touch = e.touches[0];
+                e.preventDefault(); // Stop screen from scrolling
+                pos1 = pos3 - touch.clientX;
+                pos2 = pos4 - touch.clientY;
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+
+                // Move the element
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.removeEventListener("touchend", closeDragElement);
+                document.removeEventListener("touchmove", elementDrag);
+            }
+        }
+
+        // 1. Detect any EXISTING modals and add touch support
+        var existingModals = document.querySelectorAll('.draggable-modal, [id$="Panel"], [id$="Notepad"]');
+        existingModals.forEach(m => addTouchSupport(m));
+
+        // 2. Watch for NEW modals (like KP, Ashtakavarga) created dynamically
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) { // If it's an element
+                        // Check if it looks like a modal window
+                        if (node.classList.contains('draggable-modal') ||
+                            node.style.position === 'absolute' ||
+                            node.querySelector('.notepad-header')) {
+                            addTouchSupport(node);
+                        }
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+    </script>
+</body>
+</html>.chart-box small {
   font-size: 10px;
 }
 .table-scroll {
@@ -523,5 +1172,6 @@
     </script>
 </body>
 </html>
+
 
 
