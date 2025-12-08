@@ -236,8 +236,7 @@
         }
 
         /* ==========================================================
-           📱 MOBILE RESPONSIVE STYLES
-           (Triggered when screen width is less than 768px)
+           📱 MOBILE RESPONSIVE STYLES (UPDATED FOR BUTTONS & MODALS)
         ========================================================== */
         @media (max-width: 768px) {
 
@@ -248,31 +247,33 @@
 
             h2 {
                 font-size: 18px;
+                margin: 5px 0;
             }
 
-            /* 1. Stack Form Elements Vertically */
+            /* 1. Form Grid Layout - Better Button Stacking */
             #formbar {
-                flex-direction: column;
-                gap: 8px;
-                align-items: stretch;
+                display: flex;
+                flex-wrap: wrap; /* Allow wrapping */
+                gap: 8px; /* Space between items */
                 width: 100%;
+                justify-content: space-between;
             }
 
+                /* Inputs, Selects, and Textarea take FULL Width */
                 #formbar input,
                 #formbar select,
                 #formbar textarea,
-                #formbar button {
-                    width: 100%;
+                #formbar > div { /* The div holding Time/Sec */
+                    width: 100% !important;
                     font-size: 16px; /* Prevents auto-zoom on iPhone */
+                    height: 40px;
                     box-sizing: border-box;
-                    height: 38px; /* Easier to tap */
                 }
 
                 #formbar textarea {
                     height: 60px;
                 }
 
-                /* Group Date/Time inputs better */
                 #formbar > div {
                     display: flex;
                     gap: 5px;
@@ -282,12 +283,24 @@
                         flex: 1;
                     }
 
-            /* 2. Stack Main Content (Chart Top, Details Bottom) */
+                /* Buttons take HALF Width (2 per row) */
+                #formbar button {
+                    width: 48% !important; /* Fits 2 per row */
+                    flex-grow: 1; /* Fills empty space if odd number */
+                    font-size: 13px;
+                    padding: 4px 2px;
+                    height: 40px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
+
+            /* 2. Chart Scaling */
             #container {
                 flex-direction: column;
-                width: 100%;
-                gap: 15px;
                 align-items: center;
+                gap: 10px;
+                width: 100%;
             }
 
             /* 3. Responsive Chart Grid */
@@ -308,7 +321,7 @@
                 font-size: 16px;
             }
 
-            /* 4. Make Tables & Panels Full Width */
+            /* 4. Full Width Panels */
             #tableWrap,
             #panchangamWrap,
             #dashaBox,
@@ -334,17 +347,23 @@
                 max-height: 300px;
             }
 
-            /* 6. Modal Full Width */
+            /* 6. Modal Full Width & Centered */
             .modal-content {
-                width: 90% !important;
-                max-width: 90% !important;
+                width: 95% !important;
+                max-width: 95% !important;
                 margin: auto;
             }
 
-            /* 7. Dasha Box specific */
             #dashaBox {
                 width: 100% !important;
                 box-sizing: border-box;
+            }
+
+            /* Ensure draggable modals fit screen */
+            .draggable-modal {
+                width: 95% !important;
+                left: 2.5% !important;
+                max-width: 95% !important;
             }
         }
     </style>
@@ -889,6 +908,70 @@
                 else console.error('Client Notes module not ready');
             });
         });
+    </script>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Function to make an element draggable via Touch
+        function addTouchSupport(elmnt) {
+            var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            // Look for the header (usually class 'notepad-header' or similar)
+            var header = elmnt.querySelector(".notepad-header") || elmnt.querySelector("h4") || elmnt;
+
+            if(header) {
+                header.addEventListener("touchstart", dragTouchStart, {passive: false});
+            }
+
+            function dragTouchStart(e) {
+                // e.preventDefault(); // Optional: prevent scrolling while dragging
+                var touch = e.touches[0];
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+                document.addEventListener("touchend", closeDragElement, {passive: false});
+                document.addEventListener("touchmove", elementDrag, {passive: false});
+            }
+
+            function elementDrag(e) {
+                var touch = e.touches[0];
+                e.preventDefault(); // Stop screen from scrolling
+                pos1 = pos3 - touch.clientX;
+                pos2 = pos4 - touch.clientY;
+                pos3 = touch.clientX;
+                pos4 = touch.clientY;
+
+                // Move the element
+                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.removeEventListener("touchend", closeDragElement);
+                document.removeEventListener("touchmove", elementDrag);
+            }
+        }
+
+        // 1. Detect any EXISTING modals and add touch support
+        var existingModals = document.querySelectorAll('.draggable-modal, [id$="Panel"], [id$="Notepad"]');
+        existingModals.forEach(m => addTouchSupport(m));
+
+        // 2. Watch for NEW modals (like KP, Ashtakavarga) created dynamically
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) { // If it's an element
+                        // Check if it looks like a modal window
+                        if (node.classList.contains('draggable-modal') ||
+                            node.style.position === 'absolute' ||
+                            node.querySelector('.notepad-header')) {
+                            addTouchSupport(node);
+                        }
+                    }
+                });
+            });
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
     </script>
 </body>
 </html>
