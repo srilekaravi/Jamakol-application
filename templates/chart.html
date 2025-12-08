@@ -6,6 +6,7 @@
 
     <title>ஜாதகக் கட்டம்</title>
     <style>
+        /* --- CORE RESETS --- */
         body {
             font-family: "Noto Sans Tamil", sans-serif;
             background: #fffef8;
@@ -13,56 +14,76 @@
             margin: 0;
             padding: 10px;
             box-sizing: border-box;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        *, *:before, *:after {
+            box-sizing: border-box;
         }
 
         h2 {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
         }
 
-        /* --- Desktop First Layout --- */
+        /* --- FORM BAR (RESPONSIVE) --- */
         #formbar {
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Allows items to drop to next line */
             justify-content: center;
-            margin-bottom: 10px;
+            align-items: center;
+            margin-bottom: 20px;
+            width: 100%;
         }
 
             #formbar input, #formbar select, #formbar textarea {
-                padding: 4px 6px;
-                font-size: 13px;
+                padding: 6px 8px;
+                font-size: 14px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
             }
 
+        /* Specific input sizing for desktop flow */
         #place {
-            min-width: 220px;
+            min-width: 200px;
         }
 
-        /* --------------------------------------------------
-           UPDATED BUTTON STYLE (Option A – Small & Modern)
-        -------------------------------------------------- */
+        #date {
+            min-width: 130px;
+        }
+
+        #name {
+            min-width: 150px;
+        }
+
+        /* Time wrapper to keep time/sec together */
+        .time-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        /* --- BUTTONS --- */
         button {
             background: #ff8800;
             color: white;
             border: none;
-            padding: 2px 6px; /* SIZE REDUCED */
-            font-size: 12px; /* SMALLER FONT */
-            border-radius: 4px; /* MODERN SHAPE */
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 4px;
             cursor: pointer;
             transition: 0.2s ease;
+            white-space: nowrap; /* Prevents text breaking inside button */
         }
 
             button:hover {
                 background: #e06f00;
-                transform: scale(1.03);
+                transform: scale(1.02);
             }
 
-        /* Special button (unchanged except new style applies) */
         #newChartBtn {
             background: #ff5722;
-            padding: 2px 6px;
-            font-size: 12px;
-            border-radius: 4px;
             font-weight: 600;
         }
 
@@ -70,57 +91,98 @@
                 background: #e64a19;
             }
 
+        /* --- MAIN LAYOUT CONTAINER --- */
         #container {
             display: flex;
             gap: 20px;
             justify-content: center;
             align-items: flex-start;
+            flex-wrap: wrap; /* CRITICAL: Allows stacking on tablets */
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
-        /* Chart Styling */
+        /* --- CHART STYLING (FLUID) --- */
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max size for desktop */
+            flex-shrink: 0;
+        }
+
         #chart {
-            width: 600px;
-            height: 600px;
+            width: 100%;
+            /* Forces it to be a square based on width */
+            aspect-ratio: 1 / 1;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(4, 1fr);
             gap: 1px;
             border: 3px solid #000;
             background: #fff;
-            position: relative;
+            margin: 0 auto;
         }
 
         .chart-box {
             border: 1px solid #000;
-            border-radius: 4px;
-            padding: 4px;
+            padding: 2px;
             text-align: center;
-            font-size: 14px;
+            font-size: clamp(10px, 2.5vw, 14px); /* Dynamic font size */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-        }
-        .chart-box span {
-            display: block;
-            margin-bottom: 2px; /* small spacing between planet name and degree */
+            overflow: hidden;
+            word-wrap: break-word;
         }
 
-        .chart-box small {
-            display: block;
-            margin-bottom: 4px; /* small spacing between planet entries */
+            .chart-box span {
+                display: block;
+                margin-bottom: 2px;
+            }
+
+            .chart-box small {
+                display: block;
+                margin-bottom: 2px;
+                font-size: 0.85em;
+            }
+
+            .chart-box br {
+                display: none;
+            }
+
+        #center-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: darkgreen;
+            font-size: clamp(16px, 4vw, 22px); /* Responsive font */
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 5px;
+            border-radius: 4px;
         }
 
-        .chart-box br {
-            display: none; /* remove <br> spacing completely */
+        /* --- SIDE PANELS (Tables, Dasha, Transit) --- */
+        .side-panel {
+            flex: 1;
+            min-width: 300px; /* Don't get smaller than this */
+            max-width: 520px; /* Don't get wider than this */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
-
-
+        /* Tables */
         #planet-table {
             border-collapse: collapse;
-            width: 420px;
+            width: 100%; /* Fill the container */
             font-size: 13px;
+            background: #fff;
         }
 
             #planet-table th, #planet-table td {
@@ -133,157 +195,206 @@
                 background: #ffb84d;
             }
 
-        #panchangamWrap {
+        /* Panchangam & Dasha Boxes */
+        .info-box {
             width: 100%;
-            max-width: 420px;
-            margin-top: 8px;
-        }
-
-        #panchangamData {
+            border: 1px solid #bbb;
+            padding: 8px;
+            border-radius: 6px;
+            background: #fffef0;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #222;
             box-sizing: border-box;
-            width: 100%;
+            overflow-x: auto;
         }
 
-        #panchangamWrap h4 {
+        h4.panel-header {
             background: #ffb84d;
             color: #000;
-            padding: 4px 8px;
+            padding: 6px 8px;
             border-radius: 4px 4px 0 0;
-            margin: 0 0 4px 0;
-            font-size: 13px;
+            margin: 0;
+            font-size: 14px;
+            border: 1px solid #999;
+            border-bottom: none;
         }
 
-        #center-label {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-weight: bold;
-            color: darkgreen;
-            font-size: 22px;
-            pointer-events: none;
-            transition: opacity 0.4s ease-in-out;
+        /* Dasha Specifics */
+        #dashaOuter {
+            width: 100%;
         }
 
-        /* --- Modal Styling --- */
+        #dashaBox {
+            width: 100%;
+            min-height: 220px;
+            border: 2px solid #222;
+            background: #fffef8;
+            padding: 8px;
+            border-radius: 8px;
+            overflow: auto;
+            position: relative;
+        }
+
+        /* Transit Panel */
+        #transitPanel {
+            width: 100%;
+            display: none; /* Controlled by JS */
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* --- MODAL --- */
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.4);
+            background: rgba(0,0,0,0.5);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
+            padding: 10px;
         }
 
         .modal-content {
             background: #fff;
             padding: 20px;
             border-radius: 8px;
-            width: 420px;
-            max-height: 80vh;
+            width: 100%;
+            max-width: 500px; /* Default max width */
+            max-height: 90vh;
             overflow-y: auto;
+            position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        .modal button {
-            margin: 3px;
+            .modal-content.wide {
+                max-width: 900px;
+            }
+
+        /* --- MOBILE & TABLET ADAPTATIONS --- */
+
+        /* Tablet/Small Laptop (Max width 1024px) */
+        @media (max-width: 1024px) {
+            #container {
+                gap: 15px;
+            }
+
+            .side-panel {
+                min-width: 100%; /* Stack fully on smaller tablets */
+                max-width: 100%;
+            }
+
+            .chart-wrapper {
+                max-width: 500px; /* Shrink chart slightly */
+            }
         }
 
-        /* --- IMPROVED MOBILE FIXES --- */
-        @media (max-width: 768px) {
-
+        /* Mobile (Max width 768px) and explicitly forced Mobile Mode */
+        @media (max-width: 768px), body.mobile-test {
             body {
                 padding: 5px;
-                overflow-x: hidden;
             }
 
-            #container {
-                flex-direction: column !important;
-                align-items: center !important;
-                width: 100% !important;
-                gap: 10px;
+            h2 {
+                font-size: 1.2rem;
+                margin-bottom: 10px;
             }
 
+            /* Form Grid Layout for Mobile */
             #formbar {
                 display: grid !important;
-                grid-template-columns: repeat(2, 1fr);
-                width: 100% !important;
-                gap: 6px !important;
+                grid-template-columns: 1fr 1fr; /* 2 Columns */
+                gap: 8px;
+                width: 100%;
             }
 
-                #formbar input,
-                #formbar select,
-                #formbar textarea {
-                    width: 100% !important;
-                    font-size: 13px !important;
+            /* Make full width items in form */
+            #name, #place, #comment, #tag, #gender, #chartType, #ayanamsa {
+                grid-column: span 2; /* Take full width */
+                width: 100%;
+            }
+
+            /* Group date and time on one row if possible, or stack */
+            #date {
+                grid-column: 1 / 2;
+                width: 100%;
+            }
+
+            .time-group {
+                grid-column: 2 / 3;
+                width: 100%;
+            }
+
+                .time-group input {
+                    width: 50%;
                 }
 
-                #formbar button {
-                    width: 100% !important;
-                    padding: 6px !important;
-                    height: auto !important;
-                }
+            /* Buttons take full width or half */
+            #formbar button {
+                width: 100%;
+                padding: 8px;
+                height: auto;
+            }
+
+            /* Container Stack */
+            #container {
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            /* Chart fills width */
+            .chart-wrapper {
+                max-width: 100%;
+                width: 96vw; /* Nearly full screen width */
+            }
 
             #chart {
-                width: 94vw !important;
-                height: 94vw !important;
-                max-width: none !important;
-                max-height: none !important;
+                border-width: 2px;
             }
 
+            /* Center Label Adjustment */
             #center-label {
-                font-size: 16px !important;
+                font-size: 14px;
             }
 
-            #tableWrap,
-            #planet-table {
-                width: 100% !important;
-                max-width: 100% !important;
-                overflow-x: auto !important;
-            }
-
-            #panchangamWrap {
-                max-width: 100% !important;
-            }
-
-            #dashaOuter,
-            #dashaBox {
-                width: 100% !important;
-                max-width: 100% !important;
+            /* Panels */
+            .side-panel {
+                width: 100%;
+                min-width: 0;
             }
 
             #dashaBox {
-                min-height: 180px !important;
+                min-height: 180px;
             }
 
-            #transitPanel,
-            #transitBox,
-            #transitHistory {
-                width: 100% !important;
-            }
-
+            /* Modal Adjustments */
             .modal-content {
-                width: 95% !important;
-                max-width: 95% !important;
-                max-height: 90vh !important;
+                width: 95%;
+                padding: 15px;
             }
         }
-
     </style>
 </head>
 <body>
 
     <h2>SMV ASTRO RESEARCH</h2>
 
+    <button id="mobileTestBtn" style="margin:10px auto; display:block;">
+        📱 Mobile Preview
+    </button>
+
+
     <div id="formbar">
         <input id="name" list="nameList" placeholder="பெயர்">
         <datalist id="nameList"></datalist>
 
         <input id="date" type="date">
-        <div>
+        <div class="time-group">
             <input id="time" type="time" step="1">
             <input id="seconds" type="number" min="0" max="59" value="0" placeholder="Sec">
         </div>
@@ -321,7 +432,7 @@
             <option value="Other">மற்றவை (Other)</option>
         </select>
 
-        <textarea id="comment" rows="2" placeholder="குறிப்புகள் / Notes (optional)"></textarea>
+        <textarea id="comment" rows="2" placeholder="குறிப்புகள் / Notes (optional)" style="grid-column: span 2; width: 100%;"></textarea>
 
         <button onclick="openAddPlace()">+ Add Place</button>
         <button onclick="saveChart()">💾 Save</button>
@@ -333,50 +444,41 @@
 
     <div id="container">
 
-
-        <div id="transitPanel" style="display:none;">
+        <div id="transitPanel" class="side-panel" style="display:none;">
             <div id="currentTransitArea">
-                <div id="transitBox"></div>
+                <div id="transitBox" class="info-box"></div>
             </div>
-            <aside id="transitHistory">
+            <aside id="transitHistory" class="info-box">
                 <h4>📜 Transit History</h4>
                 <div id="transitHistoryList"></div>
             </aside>
         </div>
 
+        <div id="tableWrapContainer" class="side-panel">
+            <div id="tableWrap" style="width:100%; overflow-x:auto;"></div>
 
-
-        <div id="tableWrapContainer" style="display:flex; flex-direction:column; align-items:flex-start; width:100%;">
-            <div id="tableWrap" style="width:100%;"></div>
-
-            <div id="panchangamWrap" style="display:none; margin-top:10px;">
-                <h4>🪔 பஞ்சாங்கம்</h4>
-                <div id="panchangamData"
-                     style="border:1px solid #bbb; padding:6px 8px; border-radius:6px;
-                    background:#fffef0; font-size:12.5px; line-height:1.3; color:#222;">
+            <div id="panchangamWrap" style="display:none; width: 100%;">
+                <h4 class="panel-header">🪔 பஞ்சாங்கம்</h4>
+                <div id="panchangamData" class="info-box">
                 </div>
             </div>
         </div>
 
-        <div style="position: relative;">
+        <div class="chart-wrapper">
             <div id="chart"></div>
             <div id="center-label">ராசி</div>
         </div>
 
-        <div id="dashaOuter" style="width:100%; margin-top:10px;">
-            <div id="dashaBox"
-                 style="width:520px; min-height:220px; border:2px solid #222;
-                 background:#fffef8; padding:8px; border-radius:8px; overflow:auto;
-                 position:relative;">
+        <div id="dashaOuter" class="side-panel">
+            <div id="dashaBox">
                 <div style="font-weight:bold; margin-bottom:4px;">🪔 Vimshottari Dasha</div>
-                <div id="dashaTreeWrap"
-                     style="font-size:13px; line-height:1.3; color:#222;">(loading...)</div>
+                <div id="dashaTreeWrap" style="font-size:13px; line-height:1.3; color:#222;">(loading...)</div>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="savedModal" style="display:none;">
-        <div class="modal-content" style="max-width:1200px;width:110%;position:relative;">
+    <div class="modal" id="savedModal">
+        <div class="modal-content wide">
             <button onclick="closeModal('savedModal')"
                     style="position:absolute; top:8px; right:8px; background:#f44336; color:#fff;
                     border:none; border-radius:50%; width:28px; height:28px;
@@ -388,7 +490,7 @@
             <input type="text" id="savedSearch"
                    placeholder="🔍 பெயர் / ID / குறிப்பு தேடு..."
                    style="width:100%; padding:8px; margin-bottom:8px; box-sizing:border-box;" />
-            <div id="savedList" style="overflow-x:auto;">Loading...</div>
+            <div id="savedList" style="overflow-x:auto; max-height: 60vh;">Loading...</div>
             <div style="margin-top:8px; text-align:right;">
                 <button onclick="closeModal('savedModal')">Close</button>
             </div>
@@ -398,12 +500,12 @@
     <div class="modal" id="addPlaceModal">
         <div class="modal-content">
             <h3>புதிய இடம் சேர்க்க</h3>
-            <input id="pCity" placeholder="City" style="width:100%; margin-bottom:5px;"><br>
-            <input id="pState" placeholder="State" style="width:100%; margin-bottom:5px;"><br>
-            <input id="pCountry" placeholder="Country" style="width:100%; margin-bottom:5px;"><br>
-            <input id="pLat" placeholder="Latitude" style="width:100%; margin-bottom:5px;"><br>
-            <input id="pLon" placeholder="Longitude" style="width:100%; margin-bottom:5px;"><br>
-            <input id="pTz" placeholder="Timezone (e.g., 5.5)" style="width:100%; margin-bottom:5px;"><br><br>
+            <input id="pCity" placeholder="City" style="width:100%; margin-bottom:5px; padding:6px;"><br>
+            <input id="pState" placeholder="State" style="width:100%; margin-bottom:5px; padding:6px;"><br>
+            <input id="pCountry" placeholder="Country" style="width:100%; margin-bottom:5px; padding:6px;"><br>
+            <input id="pLat" placeholder="Latitude" style="width:100%; margin-bottom:5px; padding:6px;"><br>
+            <input id="pLon" placeholder="Longitude" style="width:100%; margin-bottom:5px; padding:6px;"><br>
+            <input id="pTz" placeholder="Timezone (e.g., 5.5)" style="width:100%; margin-bottom:5px; padding:6px;"><br><br>
             <button onclick="addPlace()">Save Place</button>
             <button onclick="closeModal('addPlaceModal')">Cancel</button>
         </div>
@@ -428,7 +530,11 @@
                 input.id = "placeSearch";
                 input.setAttribute("list", "placesList");
                 input.setAttribute("placeholder", "Type city name...");
-                input.style.width = "100%"; // Changed to 100% for better layout
+                input.style.width = "100%";
+                // Ensure styles match new CSS
+                input.style.padding = "6px 8px";
+                input.style.border = "1px solid #ccc";
+                input.style.borderRadius = "4px";
             }
 
             let dataList = document.getElementById("placesList");
@@ -636,17 +742,21 @@
                         document.getElementById("savedModal").style.display = "flex";
                         return;
                     }
-                    let html = `<table style="width:100%;">
-                        <tr>
-                            <th>ID</th><th>பெயர்</th><th>பிறந்த தேதி</th><th>குறிப்பு</th><th>செயல்கள்</th>
+                    let html = `<table style="width:100%; border-collapse:collapse; min-width:400px;">
+                        <tr style="background:#f0f0f0; text-align:left;">
+                            <th style="padding:5px; border:1px solid #ccc;">ID</th>
+                            <th style="padding:5px; border:1px solid #ccc;">பெயர்</th>
+                            <th style="padding:5px; border:1px solid #ccc;">பிறந்த தேதி</th>
+                            <th style="padding:5px; border:1px solid #ccc;">குறிப்பு</th>
+                            <th style="padding:5px; border:1px solid #ccc;">செயல்கள்</th>
                         </tr>`;
                     list.forEach(r => {
                         html += `<tr>
-                            <td>${r.id}</td>
-                            <td>${r.name || ""}</td>
-                            <td>${r.date || ""}</td>
-                            <td>${r.comment || "-"}</td>
-                            <td>
+                            <td style="padding:5px; border:1px solid #ccc;">${r.id}</td>
+                            <td style="padding:5px; border:1px solid #ccc;">${r.name || ""}</td>
+                            <td style="padding:5px; border:1px solid #ccc;">${r.date || ""}</td>
+                            <td style="padding:5px; border:1px solid #ccc;">${r.comment || "-"}</td>
+                            <td style="padding:5px; border:1px solid #ccc;">
                                 <button onclick="loadSavedChart(${r.id})">📄 Load</button>
                                 <button onclick="deleteSavedChart(${r.id})">🗑️ Del</button>
                             </td>
@@ -826,7 +936,6 @@
         // Function to make an element draggable via Touch
         function addTouchSupport(elmnt) {
             var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            // Look for the header (usually class 'notepad-header' or similar)
             var header = elmnt.querySelector(".notepad-header") || elmnt.querySelector("h4") || elmnt;
 
             if(header) {
@@ -834,7 +943,6 @@
             }
 
             function dragTouchStart(e) {
-                // e.preventDefault(); // Optional: prevent scrolling while dragging
                 var touch = e.touches[0];
                 pos3 = touch.clientX;
                 pos4 = touch.clientY;
@@ -844,13 +952,11 @@
 
             function elementDrag(e) {
                 var touch = e.touches[0];
-                e.preventDefault(); // Stop screen from scrolling
+                e.preventDefault();
                 pos1 = pos3 - touch.clientX;
                 pos2 = pos4 - touch.clientY;
                 pos3 = touch.clientX;
                 pos4 = touch.clientY;
-
-                // Move the element
                 elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
                 elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
             }
@@ -861,16 +967,13 @@
             }
         }
 
-        // 1. Detect any EXISTING modals and add touch support
         var existingModals = document.querySelectorAll('.draggable-modal, [id$="Panel"], [id$="Notepad"]');
         existingModals.forEach(m => addTouchSupport(m));
 
-        // 2. Watch for NEW modals (like KP, Ashtakavarga) created dynamically
         const observer = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) { // If it's an element
-                        // Check if it looks like a modal window
+                    if (node.nodeType === 1) {
                         if (node.classList.contains('draggable-modal') ||
                             node.style.position === 'absolute' ||
                             node.querySelector('.notepad-header')) {
@@ -884,8 +987,17 @@
         observer.observe(document.body, { childList: true, subtree: true });
     });
     </script>
+    <script>
+    document.getElementById("mobileTestBtn").addEventListener("click", function () {
+        document.body.classList.toggle("mobile-test");
+
+        if (document.body.classList.contains("mobile-test")) {
+            this.textContent = "🖥 Back to Desktop";
+        } else {
+            this.textContent = "📱 Mobile Preview";
+        }
+    });
+    </script>
+
 </body>
-</html>        
-
-
-
+</html>
