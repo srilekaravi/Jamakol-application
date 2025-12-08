@@ -387,4 +387,5 @@ function makeDraggable(elmnt) {
         elmnt.style.left = (initialLeft + shiftX) + "px";
         elmnt.style.top = (initialTop + shiftY) + "px";
     }
+
 }
