@@ -1,4 +1,4 @@
-﻿/* static/js/shadbala.js */
+/* static/js/shadbala.js */
 
 // Global state to hold data between views
 window.shadbalaDataCache = null;
@@ -35,7 +35,7 @@ async function loadShadbala() {
     } catch (e) { console.error(e); }
 }
 
-// 2. UI Rendering (Resizable & Centered)
+// 2. UI Rendering (Resizable & Centered & Mobile Friendly)
 function renderShadbalaUI(data) {
     let container = document.getElementById("shadbalaContainer");
     
@@ -45,11 +45,13 @@ function renderShadbalaUI(data) {
         container.id = "shadbalaContainer";
         document.body.appendChild(container);
 
-        // Initial Centering
-        const startW = 900;
-        const startH = 600;
-        const startLeft = Math.max(0, (window.innerWidth - startW) / 2);
-        const startTop = Math.max(0, (window.innerHeight - startH) / 2);
+        // --- MOBILE FIX: Responsive Calculation ---
+        const isMobile = window.innerWidth < 768;
+        const startW = isMobile ? window.innerWidth * 0.96 : 900; // 96% width on mobile
+        const startH = isMobile ? window.innerHeight * 0.7 : 600; // 70% height on mobile
+        
+        const startLeft = (window.innerWidth - startW) / 2;
+        const startTop = (window.innerHeight - startH) / 2;
 
         container.style.width = startW + "px";
         container.style.height = startH + "px";
@@ -58,19 +60,20 @@ function renderShadbalaUI(data) {
     }
 
     // --- Force Styles (Resizable Flexbox) ---
-    // 'resize: both' enables the drag handle in the corner
+    // 'resize: both' enables the drag handle in the corner (works mainly on Desktop)
     Object.assign(container.style, {
         display: "flex", flexDirection: "column", 
         position: "fixed",
         backgroundColor: "#fff",
         border: "1px solid #ccc", borderRadius: "8px",
         boxShadow: "0 20px 50px rgba(0,0,0,0.5)", zIndex: "10000",
-        resize: "both",         // ✅ Enables Manual Resizing
-        overflow: "hidden",     // Required for resize to work properly
-        minWidth: "600px",
+        resize: "both",         
+        overflow: "hidden",     
+        // --- MOBILE FIX: Adjusted Min/Max Widths ---
+        minWidth: window.innerWidth < 600 ? "300px" : "600px", 
         minHeight: "400px",
-        maxWidth: "100vw",
-        maxHeight: "100vh"
+        maxWidth: "98vw",
+        maxHeight: "98vh"
     });
 
     // --- Ensure Tooltip Exists ---
@@ -93,7 +96,7 @@ function renderShadbalaUI(data) {
         flex: 0 0 auto;
         padding: 12px 15px; cursor: move; background: #673AB7; color: #fff; 
         border-radius: 8px 8px 0 0; font-weight: bold; display: flex; 
-        justify-content: space-between; align-items: center; user-select: none;">
+        justify-content: space-between; align-items: center; user-select: none; touch-action: none;">
         <span style="font-size:16px;">💪 Shadbala Strength (ஷட்பலம்)</span>
         <span id="shadCloseBtn" style="cursor: pointer; font-size: 24px; line-height: 1; font-weight: bold;" title="Close">&times;</span>
     </div>
@@ -124,7 +127,8 @@ function renderMainGraph(data) {
     const content = document.getElementById("shadbalaContent");
     const tamilMap = { "Sun": "சூரியன்", "Moon": "சந்திரன்", "Mars": "செவ்வாய்", "Merc": "புதன்", "Jup": "குரு", "Ven": "சுக்கிரன்", "Sat": "சனி" };
 
-    let html = `<div style="display:flex; align-items:flex-end; height:220px; gap:20px; margin-bottom:30px; border-bottom:1px solid #ccc; padding-bottom:10px;">`;
+    // MOBILE FIX: Allow horizontal scroll on the graph container if needed
+    let html = `<div style="display:flex; align-items:flex-end; height:220px; gap:20px; margin-bottom:30px; border-bottom:1px solid #ccc; padding-bottom:10px; overflow-x: auto;">`;
     
     data.forEach((p, index) => {
         const h = Math.min((p.rupa / 9) * 100, 100);
@@ -152,7 +156,7 @@ function renderMainGraph(data) {
         <div class="shad-bar-wrap"
              data-index="${index}"
              data-tip-html="${tipContent}"
-             style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
+             style="flex:1; min-width: 40px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
             
             <div style="font-size:14px; font-weight:bold; margin-bottom:5px;">${p.rupa}</div>
             
@@ -168,7 +172,9 @@ function renderMainGraph(data) {
     html += `</div>`;
     
     // Table Section
-    html += `<table style="width:100%; border-collapse:collapse; font-size:14px; text-align:center;">
+    // MOBILE FIX: Wrap table in responsive div
+    html += `<div style="overflow-x:auto;">
+             <table style="width:100%; border-collapse:collapse; font-size:14px; text-align:center; min-width: 500px;">
              <tr style="background:#f5f5f5; height:40px; border-bottom:2px solid #ddd;">
                 <th style="padding:10px; text-align:left;">Graha</th>
                 <th>Sthana</th><th>Dig</th><th>Kala</th>
@@ -188,7 +194,7 @@ function renderMainGraph(data) {
                     <td>${p.ratio}</td>
                  </tr>`;
     });
-    html += `</table>`;
+    html += `</table></div>`;
 
     content.innerHTML = html;
 
@@ -231,27 +237,27 @@ function renderDetailView(pData) {
             ⬅ Back
         </button>
         
-        <h3 style="margin:0; color:#333;">${tName} - Detailed Strength (Virupas)</h3>
+        <h3 style="margin:0; color:#333; font-size:16px;">${tName} - Detailed</h3>
         <div style="width:60px;"></div>
     </div>
     
-    <div style="display:flex; align-items:flex-end; height:300px; gap:30px; border-bottom:2px solid #333; padding-bottom:10px; margin-top:30px;">`;
+    <div style="display:flex; align-items:flex-end; height:300px; gap:10px; border-bottom:2px solid #333; padding-bottom:10px; margin-top:30px; overflow-x: auto;">`;
 
     components.forEach(c => {
         const h = Math.min((Math.abs(c.val) / c.max) * 100, 100); 
         html += `
-        <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
-            <div style="font-size:14px; font-weight:bold; margin-bottom:5px;">${c.val}</div>
+        <div style="flex:1; min-width: 50px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
+            <div style="font-size:13px; font-weight:bold; margin-bottom:5px;">${c.val}</div>
             <div style="width:100%; background:${c.col}; height:${h}%; border-radius:4px 4px 0 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);"></div>
-            <div style="margin-top:10px; font-size:13px; font-weight:bold; text-align:center;">${c.name}</div>
+            <div style="margin-top:10px; font-size:11px; font-weight:bold; text-align:center; word-wrap: break-word;">${c.name.split(" ")[0]}</div>
         </div>`;
     });
 
     html += `</div>
-    <div style="margin-top:40px; padding:15px; background:#e3f2fd; border-radius:8px; text-align:center; display:flex; justify-content:space-around;">
-        <span style="font-size:16px;">Total (Virupas): <b>${pData.total}</b></span>
-        <span style="font-size:16px;">Total (Rupas): <b>${pData.rupa}</b></span>
-        <span style="font-size:16px;">Ratio: <b style="color:${pData.ratio>=1?'green':'red'}">${pData.ratio}</b></span>
+    <div style="margin-top:40px; padding:15px; background:#e3f2fd; border-radius:8px; text-align:center; display:flex; flex-wrap: wrap; justify-content:space-around; gap: 10px;">
+        <span style="font-size:14px;">Total (Vir): <b>${pData.total}</b></span>
+        <span style="font-size:14px;">Total (Rup): <b>${pData.rupa}</b></span>
+        <span style="font-size:14px;">Ratio: <b style="color:${pData.ratio>=1?'green':'red'}">${pData.ratio}</b></span>
     </div>`;
 
     content.innerHTML = html;
@@ -280,16 +286,21 @@ window.hideShadTooltip = function() {
     if(tip) tip.style.display = "none";
 };
 
-// 6. Drag Logic (Supports Resizing)
+// 6. Drag Logic (Supports Mouse AND Touch for Mobile)
 function makeDraggable(elmnt) {
     const header = document.getElementById("shadbalaHeader");
     if (!header) return;
+    
+    // MOUSE EVENTS
     header.onmousedown = dragMouseDown;
 
+    // TOUCH EVENTS (Mobile)
+    header.ontouchstart = dragTouchStart;
+
+    // --- Mouse Logic ---
     function dragMouseDown(e) {
-        if(e.target.id === "shadCloseBtn" || e.target.tagName === "SPAN") {
-            if(e.target.title === "Close") return;
-        }
+        if(e.target.id === "shadCloseBtn" || (e.target.tagName === "SPAN" && e.target.title === "Close")) return;
+        
         e = e || window.event;
         e.preventDefault();
         
@@ -313,6 +324,37 @@ function makeDraggable(elmnt) {
     function closeDragElement() {
         document.onmouseup = null;
         document.onmousemove = null;
+    }
+
+    // --- Touch Logic (For Mobile) ---
+    function dragTouchStart(e) {
+        if(e.target.id === "shadCloseBtn") return;
+        
+        const touch = e.touches[0];
+        const rect = elmnt.getBoundingClientRect();
+        const shiftX = touch.clientX - rect.left;
+        const shiftY = touch.clientY - rect.top;
+
+        // Prevent body scroll while dragging header
+        e.preventDefault();
+
+        document.ontouchend = closeDragElementTouch;
+        document.ontouchmove = function(e) {
+            elementDragTouch(e, shiftX, shiftY);
+        };
+    }
+
+    function elementDragTouch(e, shiftX, shiftY) {
+        // Prevent Pull-to-refresh
+        // e.preventDefault(); 
+        const touch = e.touches[0];
+        elmnt.style.left = (touch.clientX - shiftX) + "px";
+        elmnt.style.top = (touch.clientY - shiftY) + "px";
+    }
+
+    function closeDragElementTouch() {
+        document.ontouchend = null;
+        document.ontouchmove = null;
     }
 }
 
