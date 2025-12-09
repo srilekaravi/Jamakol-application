@@ -6,41 +6,87 @@ document.addEventListener("DOMContentLoaded", function() {
         opt.value = "all16";
         opt.textContent = "🔢 All 16 Divisions";
         opt.style.fontWeight = "bold";
-        opt.style.color = "#4527a0"; // Deep purple to stand out
+        opt.style.color = "#4527a0"; 
         chartSelect.appendChild(opt);
     }
 
-    // 2. Hook for functionality
+    // 2. Inject Print Styles for A4
+    addPrintStyles();
+
+    // 3. Hook for functionality
     hookGenerateChart();
 });
 
 // Store state for minimize/restore
 let previousState = { top: "", left: "", width: "", height: "", transform: "" };
 
-function hookGenerateChart() {
-    // Save original function
-    const originalGenerateChart = window.generateChart;
+function addPrintStyles() {
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @media print {
+            /* Hide everything else */
+            body > * { display: none !important; }
+            
+            /* Show only the modal */
+            #divisionalModal { 
+                display: block !important; 
+                position: static !important;
+                width: 100% !important; 
+                height: auto !important; 
+                border: none !important; 
+                box-shadow: none !important;
+                background: white !important;
+                transform: none !important;
+                left: 0 !important; top: 0 !important;
+            }
 
-    // Overwrite with our logic
+            /* Hide Modal Interface elements */
+            .window-header, #resize-handle { display: none !important; }
+
+            /* Force Grid Layout for A4 */
+            #divisionalContent {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important; /* 4 columns */
+                gap: 10px !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                overflow: visible !important;
+            }
+            
+            /* Adjust Chart Size for Print */
+            #divisionalContent > div {
+                page-break-inside: avoid;
+                border: 1px solid #333 !important;
+                box-shadow: none !important;
+            }
+            
+            /* Center header text for print */
+            #divisionalContent::before {
+                content: "Shodashvarga - 16 Divisions";
+                display: block;
+                grid-column: span 4;
+                text-align: center;
+                font-size: 18px;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+function hookGenerateChart() {
+    const originalGenerateChart = window.generateChart;
     window.generateChart = function(...args) {
         const chartType = document.getElementById("chartType").value;
-
-        // CASE 1: User selected "All 16 Divisions"
         if (chartType === "all16") {
             openAllDivisions();
-            return; // STOP here. Do not refresh the background chart.
+            return; 
         }
-
-        // CASE 2: Normal Chart Generation
         if (typeof originalGenerateChart === "function") {
             originalGenerateChart.apply(this, args);
         }
-
-        // CASE 3: Update Popup if it is open (Even if minimized!)
         const modal = document.getElementById("divisionalModal");
-        
-        // FIX 1: Removed "!modal.classList.contains('minimized')" check
-        // Now it updates even when minimized.
         if (modal && modal.style.display !== "none") {
             updateDivisionalHeader();
             fetchDivisionalData();
@@ -55,7 +101,6 @@ function openAllDivisions() {
         modal = document.getElementById("divisionalModal");
     }
     
-    // Ensure it's not minimized
     modal.classList.remove("minimized");
     document.getElementById("btn-restore").style.display = "none";
     document.getElementById("btn-minimize").style.display = "inline-block";
@@ -71,7 +116,6 @@ function openAllDivisions() {
     modal.style.height = "85vh"; 
     modal.style.width = "95vw";
     
-    // Show content
     document.getElementById("divisionalContent").style.display = "grid";
     
     updateDivisionalHeader();
@@ -112,6 +156,8 @@ function createDivisionalModal() {
         flex-direction: column; 
         border-radius: 6px;
         font-family: 'Noto Sans Tamil', sans-serif;
+        min-width: 300px; /* Prevent resizing too small */
+        min-height: 200px;
     ">
         <div class="window-header" style="
             background: #4527a0; 
@@ -129,6 +175,11 @@ function createDivisionalModal() {
             <div id="divisionalTitleInfo" style="display:flex; align-items:center; overflow:hidden; white-space:nowrap;"></div>
             
             <div style="display:flex; gap:10px;">
+                <button onclick="window.print()" title="Print A4" style="
+                    background: transparent; border: none; color: white; 
+                    cursor: pointer; font-size: 16px; margin-right: 5px;
+                ">🖨️</button>
+
                 <button id="btn-restore" onclick="toggleMinimize()" title="Restore" style="display:none; background:transparent; border:none; color:white; font-weight:bold; cursor:pointer; font-size:16px;"> &#10064; </button>
                 <button id="btn-minimize" onclick="toggleMinimize()" title="Minimize" style="background:transparent; border:none; color:white; font-weight:bold; cursor:pointer; font-size:16px; margin-top:-5px;"> _ </button>
                 <button onclick="closeWindow('divisionalModal')" title="Close" style="background:#d32f2f; border:none; color:white; width:24px; height:24px; border-radius:2px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:14px;">&#10005;</button>
@@ -147,15 +198,28 @@ function createDivisionalModal() {
         ">
             <div style="text-align:center; padding:20px; color:#666;">Loading charts...</div>
         </div>
+
+        <div id="resize-handle" style="
+            width: 15px; 
+            height: 15px; 
+            position: absolute; 
+            bottom: 2px; 
+            right: 2px; 
+            cursor: se-resize; 
+            background: linear-gradient(135deg, transparent 50%, #666 50%);
+            z-index: 2001;
+        "></div>
     </div>
     `;
     document.body.insertAdjacentHTML('beforeend', html);
-    makeDraggable(document.getElementById("divisionalModal"));
+    
+    const modal = document.getElementById("divisionalModal");
+    makeDraggable(modal);
+    makeResizable(modal);
 }
 
 function closeWindow(id) { 
     document.getElementById(id).style.display = "none"; 
-    // Reset dropdown to Rasi so user can generate normal chart again
     const select = document.getElementById("chartType");
     if(select.value === "all16") select.value = "rasi";
 }
@@ -163,6 +227,7 @@ function closeWindow(id) {
 function toggleMinimize() {
     const el = document.getElementById("divisionalModal");
     const content = document.getElementById("divisionalContent");
+    const handle = document.getElementById("resize-handle");
     const btnMin = document.getElementById("btn-minimize");
     const btnRest = document.getElementById("btn-restore");
 
@@ -170,6 +235,7 @@ function toggleMinimize() {
         // Restore
         el.classList.remove("minimized");
         content.style.display = "grid";
+        handle.style.display = "block"; // Show resize handle
         
         el.style.width = previousState.width || "95vw";
         el.style.height = previousState.height || "85vh";
@@ -192,6 +258,7 @@ function toggleMinimize() {
 
         el.classList.add("minimized");
         content.style.display = "none"; 
+        handle.style.display = "none"; // Hide resize handle
         
         el.style.height = "auto";
         el.style.width = "300px";
@@ -317,7 +384,61 @@ function generateMiniChart(title, planetsMap) {
     `;
 }
 
-// --- Smooth Drag ---
+// --- Make Resizable ---
+function makeResizable(elmnt) {
+    const handle = elmnt.querySelector("#resize-handle");
+    if (!handle) return;
+    
+    let startX, startY, startWidth, startHeight;
+
+    handle.addEventListener("mousedown", initResize);
+    handle.addEventListener("touchstart", initResizeTouch);
+
+    function initResize(e) {
+        e.preventDefault();
+        startX = e.clientX;
+        startY = e.clientY;
+        startWidth = parseInt(document.defaultView.getComputedStyle(elmnt).width, 10);
+        startHeight = parseInt(document.defaultView.getComputedStyle(elmnt).height, 10);
+        document.documentElement.addEventListener("mousemove", doResize);
+        document.documentElement.addEventListener("mouseup", stopResize);
+    }
+    
+    function doResize(e) {
+        elmnt.style.width = (startWidth + e.clientX - startX) + "px";
+        elmnt.style.height = (startHeight + e.clientY - startY) + "px";
+    }
+
+    function stopResize() {
+        document.documentElement.removeEventListener("mousemove", doResize);
+        document.documentElement.removeEventListener("mouseup", stopResize);
+    }
+
+    // Touch Support
+    function initResizeTouch(e) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        startX = touch.clientX;
+        startY = touch.clientY;
+        startWidth = parseInt(document.defaultView.getComputedStyle(elmnt).width, 10);
+        startHeight = parseInt(document.defaultView.getComputedStyle(elmnt).height, 10);
+        document.documentElement.addEventListener("touchmove", doResizeTouch);
+        document.documentElement.addEventListener("touchend", stopResizeTouch);
+    }
+
+    function doResizeTouch(e) {
+        const touch = e.touches[0];
+        elmnt.style.width = (startWidth + touch.clientX - startX) + "px";
+        elmnt.style.height = (startHeight + touch.clientY - startY) + "px";
+    }
+
+    function stopResizeTouch() {
+        document.documentElement.removeEventListener("touchmove", doResizeTouch);
+        document.documentElement.removeEventListener("touchend", stopResizeTouch);
+    }
+}
+
+// --- Make Draggable ---
 function makeDraggable(elmnt) {
     let startX = 0, startY = 0, initialLeft = 0, initialTop = 0;
     const header = elmnt.querySelector(".window-header");
@@ -328,22 +449,17 @@ function makeDraggable(elmnt) {
     }
 
     function dragMouseDown(e) {
+        if(elmnt.classList.contains("minimized")) return;
         e = e || window.event;
         e.preventDefault();
-        
-        if(elmnt.classList.contains("minimized")) return;
-
         startX = e.clientX;
         startY = e.clientY;
-
         const rect = elmnt.getBoundingClientRect();
         elmnt.style.transform = "none"; 
         elmnt.style.left = rect.left + "px";
         elmnt.style.top = rect.top + "px";
-        
         initialLeft = rect.left;
         initialTop = rect.top;
-
         document.onmouseup = closeDragElement;
         document.onmousemove = elementDrag;
     }
@@ -367,14 +483,12 @@ function makeDraggable(elmnt) {
         const touch = e.touches[0];
         startX = touch.clientX;
         startY = touch.clientY;
-
         const rect = elmnt.getBoundingClientRect();
         elmnt.style.transform = "none";
         elmnt.style.left = rect.left + "px";
         elmnt.style.top = rect.top + "px";
         initialLeft = rect.left;
         initialTop = rect.top;
-
         document.ontouchend = closeDragElement;
         document.ontouchmove = elementTouchDrag;
     }
