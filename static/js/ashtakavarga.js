@@ -1,4 +1,4 @@
-/* static/js/ashtakavarga.js — Mobile Touch Fix for Buttons & Checkbox */
+/* static/js/ashtakavarga.js — Mobile Touch Fix for Checkbox & Buttons */
 
 (function () {
     "use strict";
@@ -83,15 +83,6 @@
     function makeDraggable(el, handle) {
         let x=0,y=0,dx=0,dy=0,drag=false;
 
-        const isInteractive = (target) => {
-            // Check if the touched element is a button, input, or label (or inside one)
-            return target.tagName === "BUTTON" || 
-                   target.tagName === "INPUT" || 
-                   target.tagName === "LABEL" || 
-                   target.closest("button") || 
-                   target.closest("label");
-        };
-
         const startDrag = (clientX, clientY) => {
             drag=true; 
             dx = clientX - el.offsetLeft; 
@@ -110,7 +101,8 @@
 
         // Mouse Events
         (handle||el).onmousedown = e => {
-            if (isInteractive(e.target)) return; // Allow click to pass through
+            // Basic check to ensure we don't drag when clicking interactive elements
+            if (['BUTTON','INPUT','LABEL','SELECT'].includes(e.target.tagName)) return;
             startDrag(e.clientX, e.clientY);
             document.addEventListener('mouseup', endDrag, {once:true});
             document.addEventListener('mousemove', ev => moveDrag(ev.clientX, ev.clientY));
@@ -118,8 +110,8 @@
 
         // Touch Events (Mobile)
         (handle||el).ontouchstart = e => {
-            if (isInteractive(e.target)) return; // CRITICAL FIX: Allow touch to pass to buttons/inputs
-            
+            // Note: We handle interactive elements via stopPropagation in ensurePopup
+            // If the event reaches here, it means it's safe to drag
             const t = e.touches[0];
             startDrag(t.clientX, t.clientY);
         };
@@ -128,7 +120,6 @@
             if(!drag) return;
             const t = e.touches[0];
             moveDrag(t.clientX, t.clientY);
-            // Only prevent default if we are actually dragging
             if(drag) e.preventDefault(); 
         };
 
@@ -153,7 +144,7 @@
         `;
 
         const header = document.createElement("div");
-        header.style.cssText = "flex:0 0 auto; background:#fff3e0; padding:8px; display:flex; justify-content:space-between; align-items:center; cursor:move; border-bottom:1px solid #ccc; touch-action: none;"; // Added touch-action:none
+        header.style.cssText = "flex:0 0 auto; background:#fff3e0; padding:8px; display:flex; justify-content:space-between; align-items:center; cursor:move; border-bottom:1px solid #ccc; touch-action: none;"; 
         
         const titleDiv = document.createElement("div");
         titleDiv.id = "ashtakaTitle";
@@ -165,17 +156,34 @@
         const controls = document.createElement("div");
         controls.style.display = "flex"; controls.style.gap = "5px"; controls.style.alignItems = "center";
 
+        // --- CHECKBOX CONTAINER ---
         const lagnaBox = document.createElement("label");
         lagnaBox.style.cssText = "display:flex;align-items:center;gap:3px;font-size:11px;font-weight:bold;margin-right:5px;cursor:pointer;";
         lagnaBox.innerHTML = `<input type="checkbox" id="lagnaToggle"> லக்`;
+
+        // --- CRITICAL FIX: ISOLATE CHECKBOX FROM DRAG ---
+        // Prevents touch events from bubbling up to the header's drag listener
+        ['touchstart', 'touchmove', 'touchend', 'mousedown', 'click'].forEach(evt => {
+            lagnaBox.addEventListener(evt, (e) => e.stopPropagation(), {passive: false});
+        });
 
         const btnTable = document.createElement("button");
         btnTable.textContent = "அட்டவணை";
         btnTable.style.cssText = "background:#ff9800;color:#fff;border:none;padding:3px 6px;border-radius:4px;cursor:pointer;font-weight:bold;font-size:11px;";
         
+        // Isolate Table Button
+        ['touchstart', 'touchmove', 'touchend', 'mousedown', 'click'].forEach(evt => {
+            btnTable.addEventListener(evt, (e) => e.stopPropagation(), {passive: false});
+        });
+
         const closeBtn = document.createElement("button");
         closeBtn.innerHTML = "&times;";
         closeBtn.style.cssText = "background:#d32f2f;color:#fff;border:none;padding:3px 8px;border-radius:4px;cursor:pointer;font-size:14px;";
+
+        // Isolate Close Button
+        ['touchstart', 'touchmove', 'touchend', 'mousedown', 'click'].forEach(evt => {
+            closeBtn.addEventListener(evt, (e) => e.stopPropagation(), {passive: false});
+        });
 
         controls.append(lagnaBox, btnTable, closeBtn);
         header.append(titleDiv, controls);
@@ -196,22 +204,12 @@
         popup.append(content);
         document.body.append(popup);
 
-        // Explicit listeners for better mobile response
-        closeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            popup.style.display = "none";
-        });
+        // --- BUTTON ACTIONS ---
+        // Manual click handling since we stopped propagation
+        closeBtn.onclick = () => { popup.style.display = "none"; };
         
-        // Touch end fallback for close button
-        closeBtn.addEventListener('touchend', (e) => {
-            e.stopPropagation();
-            e.preventDefault(); // prevent mouse emulation
-            popup.style.display = "none";
-        });
-
-        makeDraggable(popup, header);
-
-        const toggleTable = () => {
+        // Manually trigger the table toggle logic
+        btnTable.onclick = () => {
             const isVisible = tableDiv.style.display === "block";
             tableDiv.style.display = isVisible ? "none" : "block";
             if (!isVisible) { 
@@ -220,13 +218,8 @@
             }
         };
 
-        btnTable.onclick = toggleTable;
-        // Touch support for table button
-        btnTable.addEventListener('touchend', (e) => {
-             e.stopPropagation();
-             e.preventDefault();
-             toggleTable();
-        });
+        // Enable dragging on the header (now safe because children stop propagation)
+        makeDraggable(popup, header);
 
         return popup;
     }
@@ -236,6 +229,7 @@
         popup.style.display = "flex";
         
         const chk = document.getElementById("lagnaToggle");
+        // Re-attach listener if needed, but since we used innerHTML earlier, id is stable
         chk.onchange = () => {
             renderChart(data.ashtakavarga);
             const tableDiv = document.getElementById("ashtakaTable");
@@ -282,7 +276,6 @@
         for (let i = 0; i < 12; i++) {
             const pos = POSITIONS_MAPPING[i];
             const box = document.createElement("div");
-            // Use CSS clamp for dynamic font sizing inside boxes
             box.style.cssText = `position:absolute; left:${pos.left}; top:${pos.top}; width:${pos.width}; height:${pos.height}; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #999; background:#fff; box-sizing:border-box;`;
 
             if (lagnaName && RASI_TAMIL[i] === lagnaName) {
@@ -294,18 +287,17 @@
             const score = pointsArray[i] || 0;
             val.textContent = score;
             const isGood = currentView === "Sarva" ? (score >= 28) : (score >= 4);
-            // Responsive font size
             val.style.cssText = `font-weight:900; font-size:clamp(14px, 5vw, 22px); color:${isGood ? "#2e7d32" : "#c62828"};`;
 
             box.append(val);
             
             box.onmouseenter = (e) => showBhinnaTooltip(e, data, i);
             box.onmouseleave = () => hideBhinnaTooltip();
-            // Touch support for tooltip (basic tap)
+            
+            // Touch interaction for chart boxes (Tooltips)
             box.ontouchend = (e) => {
-                 // Simple toggle or show on tap
                  showBhinnaTooltip(e.changedTouches[0], data, i);
-                 setTimeout(hideBhinnaTooltip, 2000); // Auto hide after 2s on mobile
+                 setTimeout(hideBhinnaTooltip, 2000); 
             };
 
             wrap.append(box);
@@ -342,7 +334,6 @@
         tooltipEl.innerHTML = html;
         tooltipEl.style.display = "block";
         
-        // Ensure tooltip stays on screen
         let left = e.clientX + 15;
         let top = e.clientY + 15;
         if (left + 100 > window.innerWidth) left = window.innerWidth - 110;
@@ -357,7 +348,6 @@
 
     function renderTable(data, container) {
         const bhinna = data.bhinna || {};
-        
         const chk = document.getElementById("lagnaToggle");
         const useLagna = chk ? chk.checked : false;
         
@@ -424,20 +414,17 @@
         if(savRow) savRow.style.backgroundColor = "#fff3e0";
     };
 
-    // ✅ AUTO-UPDATE HOOK (Replaces Watcher)
+    // ✅ AUTO-UPDATE HOOK
     document.addEventListener("DOMContentLoaded", () => {
         createMainButton();
         ensurePopup();
         
-        // Hook into main generate function safely
         const originalGenerate = window.generateChart;
         if (typeof originalGenerate === 'function') {
             window.generateChart = async function(...args) {
-                // Call original first
                 if (originalGenerate.constructor.name === "AsyncFunction") await originalGenerate.apply(this, args);
                 else originalGenerate.apply(this, args);
                 
-                // Then update Ashtakavarga if visible
                 const popup = document.getElementById("ashtakaPopup");
                 if (popup && popup.style.display !== "none") {
                     document.getElementById("ashtakaMainBtn").click();
