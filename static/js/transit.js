@@ -1,4 +1,4 @@
-﻿// static/js/transit.js — FINAL FIXED VERSION (All requested fixes, original layout untouched)
+// static/js/transit.js — FINAL FIXED VERSION (Body Append + Explicit Natchatra Keys)
 (function () {
     const BTN_ID = "toggleTransitBtn";
     const CONTAINER_ID = "transitContainer";
@@ -10,16 +10,44 @@
         "மேஷம்", "ரிஷபம்", "மிதுனம்", "கடகம்", "சிம்மம்", "கன்னி",
         "துலாம்", "விருச்சிகம்", "தனுசு", "மகரம்", "கும்பம்", "மீனம்"
     ];
+
+    const rasiOwners = {
+        "மேஷம்": "செவ்வாய்", "Aries": "செவ்வாய்",
+        "ரிஷபம்": "சுக்கிரன்", "Taurus": "சுக்கிரன்",
+        "மிதுனம்": "புதன்", "Gemini": "புதன்",
+        "கடகம்": "சந்திரன்", "Cancer": "சந்திரன்",
+        "சிம்மம்": "சூரியன்", "Leo": "சூரியன்",
+        "கன்னி": "புதன்", "Virgo": "புதன்",
+        "துலாம்": "சுக்கிரன்", "Libra": "சுக்கிரன்",
+        "விருச்சிகம்": "செவ்வாய்", "Scorpio": "செவ்வாய்",
+        "தனுசு": "குரு", "Sagittarius": "குரு",
+        "மகரம்": "சனி", "Capricorn": "சனி",
+        "கும்பம்": "சனி", "Aquarius": "சனி",
+        "மீனம்": "குரு", "Pisces": "குரு"
+    };
+
     const planetColors = {
         "சூரியன்": "#e67e22", "சந்திரன்": "#3498db", "செவ்வாய்": "#ff4d4d", "புதன்": "#27ae60", "குரு": "#f1c40f",
         "சுக்கிரன்": "#f78fb3", "சனி": "#2c3e50", "ராகு": "#8e44ad", "கேது": "#95a5a6", "மாந்தி": "#34495e", "லக்னம்": "#ff7f00"
     };
 
-    /* ---------- CSS ---------- */
+    function getShortName(name) {
+        if (!name) return "";
+        const map = {
+            "சூரியன்": "சூரி", "சந்திரன்": "சந்", "செவ்வாய்": "செவ்", "புதன்": "புத",
+            "குரு": "குரு", "சுக்கிரன்": "சுக்", "சனி": "சனி", "ராகு": "ராகு", "கேது": "கேது",
+            "Sun": "சூரி", "Moon": "சந்", "Mars": "செவ்", "Mercury": "புத",
+            "Jupiter": "குரு", "Venus": "சுக்", "Saturn": "சனி", "Rahu": "ராகு", "Ketu": "கேது"
+        };
+        return map[name] || (name.length > 3 ? name.substring(0, 3) : name);
+    }
+
     const css = `
   #${CONTAINER_ID}{position:absolute;left:0;top:620px;display:none;gap:8px;z-index:9999;align-items:flex-start;}
   #${BOX_ID}{width:520px;background:#fffef8;border:2px solid #ccc;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.15);}
-  #transitHeader{background:#fdf4d0;padding:6px;font-weight:600;text-align:center;cursor:grab;border-bottom:1px solid #ddd;border-radius:10px 10px 0 0;}
+  #transitHeader{background:#fdf4d0;padding:8px 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center;cursor:grab;border-bottom:1px solid #ddd;border-radius:10px 10px 0 0; user-select:none;}
+  #transitHeader .close-btn {cursor:pointer; font-size:16px; color:#555; padding:0 4px;}
+  #transitHeader .close-btn:hover {color:#d00;}
   #${HISTORY_ID}{width:520px;max-height:520px;overflow:auto;background:#f7fbff;border:2px solid #cfe2ff;border-radius:10px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);}
   #${HISTORY_ID} table{width:100%;border-collapse:collapse;font-size:12px;}
   #${HISTORY_ID} th,#${HISTORY_ID} td{border:1px solid #ccc;padding:4px;text-align:left;vertical-align:middle;}
@@ -27,7 +55,7 @@
   #${HISTORY_ID} button{padding:4px 6px;font-size:12px;border-radius:4px;cursor:pointer;}
   #${HISTORY_ID} .view-link{color:#0b63d6;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;}
   .transit-grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);gap:2px;position:relative;}
-  .transit-cell{border:1px solid #999;border-radius:6px;background:#fff;min-height:110px;font-size:11px;text-align:center;padding:2px;}
+  .transit-cell{border:1px solid #999;border-radius:6px;background:#fff;min-height:110px;font-size:11px;text-align:center;padding:2px; position:relative;}
   .transit-highlight{border-color:#ff9800;background:#fff8e1;}
   #transit-center-label{grid-column:2/4;grid-row:2/4;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#b35400;position:absolute;inset:0;pointer-events:none;}
   .preview-panel{position:absolute;width:420px;background:#fff;border:2px solid #ddd;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:10001;padding:6px;overflow:auto;}
@@ -36,6 +64,12 @@
   .notes-panel{position:absolute;width:360px;background:#fff;border:2px solid #ddd;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:10002;padding:8px;overflow:auto;}
   .notes-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
   .tiny-btn{padding:4px 6px;font-size:12px;border-radius:6px;cursor:pointer;}
+  @media (max-width: 600px) {
+    #${CONTAINER_ID} { top: 10% !important; left: 50% !important; transform: translateX(-50%); width: 95%; max-width: 95%; flex-direction: column; }
+    #${BOX_ID}, #${HISTORY_ID} { width: 100%; max-width: 100%; }
+    .transit-cell { min-height: 80px; font-size: 10px; }
+    #transit-center-label { font-size: 14px; }
+  }
   `;
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
@@ -47,7 +81,8 @@
     btn.addEventListener("click", async () => {
         if (!container) {
             container = createContainer();
-            (document.querySelector("#chart")?.parentElement || document.body).appendChild(container);
+            // FIX: Append to document.body to prevent relative positioning "jump" issues
+            document.body.appendChild(container);
         }
         if (!container.style.display || container.style.display === "none") {
             container.style.display = "flex";
@@ -60,28 +95,60 @@
     function createContainer() {
         const wrap = document.createElement("div"); wrap.id = CONTAINER_ID;
         box = document.createElement("div"); box.id = BOX_ID;
-        header = document.createElement("div"); header.id = "transitHeader"; header.textContent = "🪐 கோட்சாரம் (Drag here)";
+        
+        header = document.createElement("div"); header.id = "transitHeader"; 
+        header.innerHTML = `<span>🪐 கோட்சாரம் (Drag here)</span><span class="close-btn" title="Close">✕</span>`;
         box.appendChild(header);
+
+        header.querySelector(".close-btn").addEventListener("pointerdown", (e) => {
+             e.stopPropagation(); 
+             wrap.style.display = "none";
+        });
+
         const body = document.createElement("div"); body.id = "transitBody"; body.style.padding = "8px"; box.appendChild(body);
         historyBox = document.createElement("div"); historyBox.id = HISTORY_ID;
         wrap.appendChild(box);
-        // wrap.appendChild(historyBox); // 🚫 Temporarily hidden (Transit History disabled)
-
+        
         enableDrag(wrap, header);
         return wrap;
     }
 
+    // --- DRAG FIX: Uses pageX/Y + Shift Calculation ---
     function enableDrag(el, handle) {
-        let dragging = false, sx = 0, sy = 0, sl = 0, st = 0;
+        let isDragging = false;
+        let shiftX = 0;
+        let shiftY = 0;
+
         handle.addEventListener("pointerdown", e => {
+            if (e.target.classList.contains('close-btn')) return; 
             if (e.button !== 0) return;
-            dragging = true;
+            
+            e.preventDefault(); // CRITICAL: Prevents text selection which causes lag/jump
+            isDragging = true;
+            
+            // Calculate offset from the top-left of the window
+            const rect = el.getBoundingClientRect();
+            shiftX = e.clientX - rect.left;
+            shiftY = e.clientY - rect.top;
+            
             try { el.setPointerCapture(e.pointerId); } catch { }
-            const r = el.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; sl = r.left; st = r.top;
             handle.style.cursor = "grabbing";
         });
-        window.addEventListener("pointermove", e => { if (!dragging) return; el.style.left = sl + (e.clientX - sx) + "px"; el.style.top = st + (e.clientY - sy) + "px"; });
-        window.addEventListener("pointerup", e => { dragging = false; handle.style.cursor = "grab"; try { el.releasePointerCapture(e.pointerId); } catch { } });
+
+        window.addEventListener("pointermove", e => {
+            if (!isDragging) return;
+            // Absolute position relative to body
+            el.style.left = (e.pageX - shiftX) + "px";
+            el.style.top = (e.pageY - shiftY) + "px";
+        });
+
+        window.addEventListener("pointerup", e => {
+            if (isDragging) {
+                isDragging = false;
+                handle.style.cursor = "grab";
+                try { el.releasePointerCapture(e.pointerId); } catch { }
+            }
+        });
     }
 
     function buildPayload(extra = {}) {
@@ -124,7 +191,34 @@
             const dms = r.dms || r.degree || "";
             const retro = (r.retro_flag === "வ");
             const color = planetColors[name] || "#000";
-            const label = `<span style="color:${color};font-weight:600;">${retro ? `(${short})` : short}</span><small>${dms ? " " + dms : ""}</small>`;
+
+            // --- DATA EXTRACTION ---
+            
+            // 1. Rasi Lord
+            const rasiLordFull = rasiOwners[rasi] || rasiOwners[r.rasi] || "";
+            const rasiLordShort = getShortName(rasiLordFull);
+
+            // 2. Natchatra (Star) - Checking 'natchatra' specifically + others
+            const natchatraFull = r.natchatra || r.natchatra_ta || r.nakshatra || r.nakshatra_ta || r.star || r.star_ta || "";
+            
+            // 3. Natchatra Lord (Star Lord) - Checking 'natchatra_lord' specifically + others
+            const natchatraLordFull = r.natchatra_lord || r.natchatra_lord_ta || r.nakshatra_lord || r.starlord || r.star_lord || r.sl || "";
+            const natchatraLordShort = getShortName(natchatraLordFull);
+            
+            // Format: "RasiLord / StarLord" -> "சந்/சனி"
+            let tooltipTitle = name; 
+            if (rasiLordShort || natchatraLordShort) {
+                tooltipTitle = `${rasiLordShort || "?"} / ${natchatraLordShort || "?"}`;
+            } 
+            
+            // Uncomment to debug if still missing:
+            // console.log("Planet:", name, "Star:", natchatraFull, "Lord:", natchatraLordFull, "Row:", r);
+
+            const label = `<span title="${tooltipTitle}" style="color:${color};font-weight:600;cursor:help;">
+                             ${retro ? `(${short})` : short}
+                           </span>
+                           <small>${dms ? " " + dms : ""}</small>`;
+            
             grid[rasi].push(label);
         });
         const order = ["மீனம்", "மேஷம்", "ரிஷபம்", "மிதுனம்", "கும்பம்", null, null, "கடகம்", "மகரம்", null, null, "சிம்மம்", "தனுசு", "விருச்சிகம்", "துலாம்", "கன்னி"];
@@ -276,7 +370,6 @@
 
     async function saveNewSnapshot(chartId, note) {
         try {
-            // ✅ Always use the current chart ID (link transit to the correct person)
             const currentId = parseInt(window.currentChartId || chartId || 0);
             if (!currentId) {
                 alert("⚠️ Please save or load a chart first before saving transit history.");
@@ -288,7 +381,7 @@
             }
 
             const payload = {
-                chart_id: currentId,  // ✅ chart-specific save
+                chart_id: currentId,  
                 transit_data: window.lastTransitData,
                 location: document.getElementById("placeSearch")?.value || "Chennai",
                 note
@@ -302,7 +395,7 @@
 
             const j = await res.json();
             if (j.status === "ok") {
-                await renderHistory(); // ✅ refresh only that chart’s history
+                await renderHistory();
                 return true;
             }
             return false;
@@ -311,6 +404,5 @@
             return false;
         }
     }
-
 
 })();
