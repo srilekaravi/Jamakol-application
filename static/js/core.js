@@ -103,7 +103,7 @@ function getSelectedPlaceMeta() {
 }
 
 /* ==========================================================
-   2. 🪐 TRANSIT POPUP (Fixed: Bigger Fonts, Bold Degrees, Full 5-Level Chain)
+   2. 🪐 TRANSIT POPUP (Mobile Responsive + Touch Drag)
    ========================================================== */
 window.showTimelineTransit = async function (date, time) {
     if (!date) return alert("Invalid date");
@@ -129,21 +129,16 @@ window.showTimelineTransit = async function (date, time) {
         const lords = ["கேது", "சுக்கிரன்", "சூரியன்", "சந்திரன்", "செவ்வாய்", "ராகு", "குரு", "சனி", "புதன்"];
         const years = [7, 20, 6, 10, 7, 18, 16, 19, 17]; // Total 120
         
-        // 1 Nakshatra = 13.3333333333 degrees
         const nakSpan = 13.3333333333;
         const totalDeg = (rasiIndex * 30) + moonDeg;
         const nakIndex = Math.floor(totalDeg / nakSpan);
         const degInNak = totalDeg % nakSpan;
         
-        // Fraction passed (0.0 to 1.0)
         let fraction = degInNak / nakSpan;
-        
-        // Starting Lord Index (Dasa Lord)
         let currentLordIdx = nakIndex % 9;
         
         const chain = [];
         
-        // Calculate 5 Levels (Dasa, Bhukti, Antara, Sookshma, Prana)
         for (let level = 0; level < 5; level++) {
             chain.push(getShortName(lords[currentLordIdx]));
             
@@ -151,7 +146,6 @@ window.showTimelineTransit = async function (date, time) {
             let foundSub = false;
             let cumulative = 0;
             
-            // Sub-cycle iteration
             for (let i = 0; i < 9; i++) {
                 const idx = (currentLordIdx + i) % 9;
                 const weight = years[idx] / 120.0;
@@ -170,24 +164,87 @@ window.showTimelineTransit = async function (date, time) {
     };
 
     let win = document.getElementById("timelineTransitBox");
+    
+    // Create Window if not exists
     if (!win) {
         win = document.createElement("div");
         win.id = "timelineTransitBox";
-        win.style = `position:fixed;left:50px;top:100px;width:420px;background:#fff;border:2px solid #333;border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.3);z-index:10005;display:flex;flex-direction:column;`;
+        
+        // Mobile Responsive Styling
+        win.style.cssText = `
+            position: fixed;
+            width: 95%;
+            max-width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #fff;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 10005;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+        `;
+        
+        // Calculate Center Position
+        const leftPos = (window.innerWidth - Math.min(window.innerWidth * 0.95, 420)) / 2;
+        win.style.left = leftPos + "px";
+        win.style.top = "80px"; // Default top
+
         win.innerHTML = `
-            <div id="transitHeader" style="background:#fdf4d0;padding:5px;cursor:move;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;font-weight:bold;">
-                <span id="transitTitle">Transit Chart</span>
-                <button onclick="this.parentElement.parentElement.style.display='none'" style="border:none;background:none;cursor:pointer;font-size:16px;color:red;">Close(✕)</button>
+            <div id="transitHeader" style="background:#fdf4d0;padding:10px;cursor:move;border-bottom:1px solid #ddd;display:flex;justify-content:space-between;align-items:center;font-weight:bold; touch-action: none;">
+                <span id="transitTitle" style="font-size:15px;">Transit Chart</span>
+                <button onclick="this.closest('#timelineTransitBox').style.display='none'" style="border:none;background:#ffcdd2;border-radius:4px;padding:4px 8px;cursor:pointer;font-size:14px;color:red;font-weight:bold;">✕ Close</button>
             </div>
-            <div id="transitContent" style="padding:10px;">Loading...</div>
-            <div id="transitDasha" style="padding:8px;background:#ffebee;border-top:1px solid #ffcdd2;text-align:center;font-weight:bold;color:#b71c1c;font-size:14px;"></div>`;
+            <div id="transitContent" style="padding:5px;">Loading...</div>
+            <div id="transitDasha" style="padding:8px;background:#ffebee;border-top:1px solid #ffcdd2;text-align:center;font-weight:bold;color:#b71c1c;font-size:13px;"></div>`;
         document.body.appendChild(win);
         
-        let isDown=false, offset=[0,0];
+        // --- DRAG LOGIC (Mouse + Touch) ---
+        let isDown = false;
+        let offset = [0, 0];
         const head = win.querySelector("#transitHeader");
-        head.addEventListener('mousedown', (e) => { isDown=true; offset=[win.offsetLeft-e.clientX, win.offsetTop-e.clientY]; });
-        document.addEventListener('mouseup', () => isDown=false);
-        document.addEventListener('mousemove', (e) => { if(isDown) { win.style.left=(e.clientX+offset[0])+'px'; win.style.top=(e.clientY+offset[1])+'px'; }});
+
+        const startDrag = (clientX, clientY) => {
+            isDown = true;
+            offset = [
+                win.offsetLeft - clientX,
+                win.offsetTop - clientY
+            ];
+        };
+
+        const doDrag = (clientX, clientY) => {
+            if (isDown) {
+                win.style.left = (clientX + offset[0]) + 'px';
+                win.style.top = (clientY + offset[1]) + 'px';
+            }
+        };
+
+        const endDrag = () => { isDown = false; };
+
+        // Mouse Events
+        head.addEventListener('mousedown', (e) => startDrag(e.clientX, e.clientY));
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('mousemove', (e) => {
+            if(isDown) e.preventDefault(); // Prevent text selection
+            doDrag(e.clientX, e.clientY);
+        });
+
+        // Touch Events (Mobile)
+        head.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            startDrag(touch.clientX, touch.clientY);
+        }, {passive: false});
+        
+        document.addEventListener('touchend', endDrag);
+        document.addEventListener('touchmove', (e) => {
+            if (isDown) {
+                e.preventDefault(); // Prevent scrolling while dragging
+                const touch = e.touches[0];
+                doDrag(touch.clientX, touch.clientY);
+            }
+        }, {passive: false});
     }
     
     win.style.display = "flex";
@@ -215,31 +272,21 @@ window.showTimelineTransit = async function (date, time) {
                         const m = Math.floor((r.degree - d) * 60);
                         degStr = `${d}°${m}`;
                     }
-                    console.log("TRANSIT ROW:", r);
-
-                                        // --- DO NOT detect retro manually for transit ---
-                    // Transit API already gives correct label including retro bracket
-
-                    // FINAL NAME directly from API
-                    let pName = r.grid_label || r.graha_ta || r.short || r.name || r.planet || "";
-
-
-
-                    // Final HTML output
+                    const pName = r.short || r.name.slice(0,3);
+                    
                     const html = `
-                    <div style="text-align:center; margin:3px;">
-                        <div style="font-size:14px;font-weight:bold;line-height:1;color:#000;">${pName}</div>
-                        <div style="font-size:11px;font-weight:bold;color:#333;margin-top:1px;">${degStr}</div>
+                    <div style="text-align:center; margin:2px;">
+                        <div style="font-size:13px;font-weight:bold;line-height:1;color:#000;">${pName}</div>
+                        <div style="font-size:10px;font-weight:bold;color:#333;margin-top:0px;">${degStr}</div>
                     </div>`;
-
                     grid[r.rasi].push(html); 
                 }
             });
             
             const order = ["மீனம்", "மேஷம்", "ரிஷபம்", "மிதுனம்", "கும்பம்", null, null, "கடகம்", "மகரம்", null, null, "சிம்மம்", "தனுசு", "விருச்சிகம்", "துலாம்", "கன்னி"];
             
-            let html = `<div style="position:relative; width:100%;">`;
-            html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;border:1px solid #000;">`;
+            let html = `<div style="position:relative; width:100%; box-sizing: border-box;">`;
+            html += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid #000;background:#333;">`;
             
             order.forEach(r => {
                 if (r) {
@@ -247,18 +294,19 @@ window.showTimelineTransit = async function (date, time) {
                     <div style="
                         border:1px solid #ccc;
                         aspect-ratio:1;
-                        padding:2px;
+                        padding:1px;
                         font-size:11px;
                         background:#fff8e1;
                         display:flex;
                         flex-wrap:wrap;
                         align-content:center;
                         justify-content:center;
-                        gap:6px;">
+                        gap:2px;
+                        overflow:hidden;">
                         ${grid[r].join("")}
                     </div>`;
                 } else {
-                    html += `<div></div>`; 
+                    html += `<div style="background:#fff;"></div>`; 
                 }
             });
             html += `</div>`;
@@ -268,7 +316,7 @@ window.showTimelineTransit = async function (date, time) {
                 position: absolute;
                 top: 50%; left: 50%;
                 transform: translate(-50%, -50%);
-                width: 48%; height: 48%;
+                width: 49%; height: 49%;
                 display: flex; 
                 flex-direction: column;
                 justify-content: center; 
@@ -276,14 +324,15 @@ window.showTimelineTransit = async function (date, time) {
                 text-align: center;
                 pointer-events: none;
                 z-index: 50; 
-                background: rgba(255,255,255,0.92);
+                background: rgba(255,255,255,0.95);
                 border-radius: 4px;
+                box-shadow: 0 0 5px rgba(0,0,0,0.1);
             "></div>`;
             html += `</div>`;
 
             win.querySelector("#transitContent").innerHTML = html;
 
-            // 2. MOON LOGIC (Find & Calculate 5-Level Chain)
+            // 2. MOON LOGIC
             const tMoon = j.rows.find(r => {
                 const p = (r.planet || "").toLowerCase();
                 const n = (r.name || "").toLowerCase();
@@ -320,10 +369,11 @@ window.showTimelineTransit = async function (date, time) {
                         }
                     }
 
+                    // Responsive font sizes for Center Box
                     centerBox.innerHTML = `
-                        <div style="font-size:19px; font-weight:bold; margin-bottom:4px;">சந்-நட்</div>
-                        <div style="font-size:14px; font-weight:bold; color:#000;">${nak || "Unknown"}</div>
-                        <div style="font-size:13px; font-weight:bold; color:#b71c1c; margin-top:3px; line-height:1.4;">
+                        <div style="font-size:clamp(16px, 4vw, 19px); font-weight:bold; margin-bottom:2px;">சந்-நட்</div>
+                        <div style="font-size:clamp(12px, 3.5vw, 14px); font-weight:bold; color:#000;">${nak || "Unknown"}</div>
+                        <div style="font-size:clamp(11px, 3vw, 13px); font-weight:bold; color:#b71c1c; margin-top:3px; line-height:1.4;">
                              ${fullChain || "Chain Error"}
                         </div>
                     `;
@@ -333,7 +383,7 @@ window.showTimelineTransit = async function (date, time) {
             }
         }
         
-        // 3. Native's Dasa (Bottom Bar)
+        // 3. Native's Dasa
         const chartId = window.currentChartId || 0;
         if(chartId) {
             const dRes = await fetch(`/get_dasha_chain/${chartId}?date=${encodeURIComponent(date+'T'+time)}`);
@@ -345,7 +395,6 @@ window.showTimelineTransit = async function (date, time) {
         }
     } catch(e) { console.error("Transit Popup Error:", e); }
 };
-
 
 /* ==========================================================
    🌞 GENERATE CHART
