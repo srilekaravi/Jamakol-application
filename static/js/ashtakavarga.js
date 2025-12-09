@@ -1,4 +1,4 @@
-﻿/* static/js/ashtakavarga.js — Final UI & Dynamic Update Fix */
+/* static/js/ashtakavarga.js — Mobile Compatible & Touch Fix */
 
 (function () {
     "use strict";
@@ -35,7 +35,6 @@
     let currentView = "Sarva"; 
 
     function buildPayload() {
-        // Safe robust payload collector
         const name = document.getElementById("name")?.value || "";
         const date = document.getElementById("date")?.value;
         const time = document.getElementById("time")?.value;
@@ -80,14 +79,53 @@
         };
     }
 
+    // --- UPDATED: Added Touch Events for Mobile Dragging ---
     function makeDraggable(el, handle) {
         let x=0,y=0,dx=0,dy=0,drag=false;
-        (handle||el).onmousedown=e=>{
-            if(e.target.tagName==="BUTTON"||e.target.tagName==="INPUT")return;
-            drag=true; dx=e.clientX-el.offsetLeft; dy=e.clientY-el.offsetTop;
-            document.onmouseup=()=>drag=false;
-            document.onmousemove=ev=>{ if(!drag)return; x=ev.clientX-dx; y=ev.clientY-dy; el.style.left=x+"px"; el.style.top=y+"px"; };
+
+        const startDrag = (clientX, clientY) => {
+            drag=true; 
+            dx = clientX - el.offsetLeft; 
+            dy = clientY - el.offsetTop;
         };
+
+        const moveDrag = (clientX, clientY) => {
+            if(!drag) return; 
+            x = clientX - dx; 
+            y = clientY - dy; 
+            // Optional: Keep inside screen bounds
+            // if(x < 0) x = 0; if(y < 0) y = 0;
+            el.style.left=x+"px"; 
+            el.style.top=y+"px"; 
+        };
+
+        const endDrag = () => drag=false;
+
+        // Mouse Events
+        (handle||el).onmousedown = e => {
+            if(e.target.tagName==="BUTTON"||e.target.tagName==="INPUT")return;
+            startDrag(e.clientX, e.clientY);
+            document.addEventListener('mouseup', endDrag, {once:true});
+            document.addEventListener('mousemove', ev => moveDrag(ev.clientX, ev.clientY));
+        };
+
+        // Touch Events (Mobile)
+        (handle||el).ontouchstart = e => {
+            if(e.target.tagName==="BUTTON"||e.target.tagName==="INPUT")return;
+            const t = e.touches[0];
+            startDrag(t.clientX, t.clientY);
+            // Prevent default to stop scrolling while dragging
+            // e.preventDefault(); 
+        };
+
+        (handle||el).ontouchmove = e => {
+            if(!drag) return;
+            const t = e.touches[0];
+            moveDrag(t.clientX, t.clientY);
+            e.preventDefault(); // Stop screen from scrolling
+        };
+
+        (handle||el).ontouchend = endDrag;
     }
 
     function ensurePopup() {
@@ -96,12 +134,16 @@
 
         popup = document.createElement("div");
         popup.id = "ashtakaPopup";
+        // --- UPDATED CSS: Responsive Width & Centering for Mobile ---
         popup.style.cssText = `
-            position:fixed; left:100px; top:50px; width:340px; height:auto; max-height:85vh;
+            position:fixed; 
+            left:5%; top:10%; 
+            width:90vw; max-width:340px; 
+            height:auto; max-height:85vh;
             background:#fff; border:2px solid #ffa726; border-radius:8px;
             box-shadow:0 10px 30px rgba(0,0,0,0.3);
             display:none; flex-direction:column; z-index:9999;
-            resize:both; overflow:hidden; min-width:340px; min-height:400px;
+            overflow:hidden; 
         `;
 
         const header = document.createElement("div");
@@ -137,7 +179,8 @@
         content.style.cssText = "flex:1 1 auto; overflow-y:auto; padding:10px; display:flex; flex-direction:column; align-items:center; gap:10px;";
 
         const chartContainer = document.createElement("div");
-        chartContainer.style.cssText = "width:300px; height:300px; position:relative; border:2px solid #333; background:#fafafa; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.1);";
+        // --- UPDATED CSS: Fluid Chart Size for Mobile ---
+        chartContainer.style.cssText = "width:100%; max-width:300px; aspect-ratio:1/1; position:relative; border:2px solid #333; background:#fafafa; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin:0 auto;";
         chartContainer.id = "ashtakaChart";
 
         const tableDiv = document.createElement("div");
@@ -214,6 +257,7 @@
         for (let i = 0; i < 12; i++) {
             const pos = POSITIONS_MAPPING[i];
             const box = document.createElement("div");
+            // Use CSS clamp for dynamic font sizing inside boxes
             box.style.cssText = `position:absolute; left:${pos.left}; top:${pos.top}; width:${pos.width}; height:${pos.height}; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid #999; background:#fff; box-sizing:border-box;`;
 
             if (lagnaName && RASI_TAMIL[i] === lagnaName) {
@@ -225,12 +269,19 @@
             const score = pointsArray[i] || 0;
             val.textContent = score;
             const isGood = currentView === "Sarva" ? (score >= 28) : (score >= 4);
-            val.style.cssText = `font-weight:900;font-size:22px;color:${isGood ? "#2e7d32" : "#c62828"};`;
+            // Responsive font size
+            val.style.cssText = `font-weight:900; font-size:clamp(14px, 5vw, 22px); color:${isGood ? "#2e7d32" : "#c62828"};`;
 
             box.append(val);
             
             box.onmouseenter = (e) => showBhinnaTooltip(e, data, i);
             box.onmouseleave = () => hideBhinnaTooltip();
+            // Touch support for tooltip (basic tap)
+            box.ontouchend = (e) => {
+                 // Simple toggle or show on tap
+                 showBhinnaTooltip(e.changedTouches[0], data, i);
+                 setTimeout(hideBhinnaTooltip, 2000); // Auto hide after 2s on mobile
+            };
 
             wrap.append(box);
         }
@@ -239,10 +290,10 @@
         centerLabel.style.cssText = `position:absolute; left:25%; top:25%; width:50%; height:50%; display:flex; align-items:center; justify-content:center; pointer-events:none;`;
         
         if(currentView === "Sarva") {
-            centerLabel.innerHTML = `<span style="font-weight:bold; font-size:14px; color:#e65100; text-align:center; line-height:1.4;">சர்வ<br>அஷ்டகவர்க்கம்</span>`;
+            centerLabel.innerHTML = `<span style="font-weight:bold; font-size:clamp(12px, 4vw, 14px); color:#e65100; text-align:center; line-height:1.4;">சர்வ<br>அஷ்டகவர்க்கம்</span>`;
         } else {
             const pName = PLANET_TAMIL[currentView] || currentView;
-            centerLabel.innerHTML = `<span style="font-weight:bold; font-size:14px; color:#1976D2; text-align:center; line-height:1.4;">${pName}<br>அஷ்டகவர்க்கம்</span>`;
+            centerLabel.innerHTML = `<span style="font-weight:bold; font-size:clamp(12px, 4vw, 14px); color:#1976D2; text-align:center; line-height:1.4;">${pName}<br>அஷ்டகவர்க்கம்</span>`;
         }
         wrap.append(centerLabel);
     }
@@ -265,8 +316,14 @@
         });
         tooltipEl.innerHTML = html;
         tooltipEl.style.display = "block";
-        tooltipEl.style.left = (e.clientX + 15) + "px";
-        tooltipEl.style.top = (e.clientY + 15) + "px";
+        
+        // Ensure tooltip stays on screen
+        let left = e.clientX + 15;
+        let top = e.clientY + 15;
+        if (left + 100 > window.innerWidth) left = window.innerWidth - 110;
+        
+        tooltipEl.style.left = left + "px";
+        tooltipEl.style.top = top + "px";
     }
 
     function hideBhinnaTooltip() {
@@ -363,5 +420,4 @@
             };
         }
     });
-
 })();
