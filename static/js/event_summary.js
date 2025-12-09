@@ -1,4 +1,4 @@
-﻿/* static/js/event_summary.js — Final Version: Robust Saving & Loading */
+/* static/js/event_summary.js — Final Version: Mobile Responsive */
 
 (function () {
     const PANEL_ID = "clientNotesPanel";
@@ -10,21 +10,47 @@
         return map[name] || name;
     }
 
-    // CSS Styles for the Notes Panel
+    // CSS Styles for the Notes Panel (Updated for Mobile)
     const css = `
       #${PANEL_ID} {
-          position:fixed;right:20px;top:60px;width:520px;max-height:80vh;
-          overflow:hidden; background:#fff;border:2px solid #ddd;border-radius:10px;
-          box-shadow:0 8px 24px rgba(0,0,0,0.15);padding:10px;z-index:99999;
-          display:none;flex-direction:column;font-family:sans-serif;
+          position: fixed; 
+          right: 20px; 
+          top: 60px; 
+          width: 520px; 
+          max-height: 80vh;
+          overflow: hidden; 
+          background: #fff; 
+          border: 2px solid #ddd; 
+          border-radius: 10px;
+          box-shadow: 0 8px 24px rgba(0,0,0,0.15); 
+          padding: 10px; 
+          z-index: 99999;
+          display: none; 
+          flex-direction: column; 
+          font-family: sans-serif;
       }
+
+      /* 📱 MOBILE RESPONSIVE FIX */
+      @media (max-width: 600px) {
+          #${PANEL_ID} {
+              width: 94% !important;     /* Fill the screen width */
+              left: 3% !important;       /* Center horizontally */
+              right: 3% !important;
+              top: 50px !important;      /* Adjust top spacing */
+              max-height: 85vh !important; /* Allow more height */
+          }
+      }
+
       #${PANEL_ID} h3 { margin-top:0;text-align:center;background:#f4f4f4;padding:6px;border-radius:8px; }
-      .event-search-box { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; }
+      .event-search-box { width: 100%; padding: 8px; margin-bottom: 8px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
       #notesWrap { overflow-y: auto; flex: 1; max-height: 60vh; padding-right: 5px; }
       .timeline-entry { border-left: 3px solid #0b63d6; margin: 8px 0; padding-left: 10px; font-size: 13px; line-height: 1.4; background: #fff; padding-bottom:5px; border-bottom:1px solid #eee; }
       .timeline-entry .dasha-info { color: #d35400; font-weight: bold; font-size: 11px; margin-top: 4px; background: #fff3e0; padding: 2px 5px; border-radius: 4px; display: inline-block; }
       .timeline-entry button { margin-top: 6px; margin-right: 5px; cursor: pointer; padding: 3px 8px; background:#eee; border:1px solid #ccc; border-radius:3px; }
       .timeline-entry button:hover { background:#ddd; }
+      
+      /* Form Input Fixes for Mobile */
+      #addNoteForm input, #addNoteForm textarea { box-sizing: border-box; }
     `;
     const st = document.createElement("style");
     st.textContent = css;
@@ -41,26 +67,26 @@
             panel = document.createElement("div");
             panel.id = PANEL_ID;
             panel.innerHTML = `
-                <div id="closeNotesBtn" style="float:right;cursor:pointer;font-weight:bold;font-size:16px;">✕</div>
+                <div id="closeNotesBtn" style="float:right;cursor:pointer;font-weight:bold;font-size:16px;padding:5px;">✕</div>
                 <h3>🗒 Client Notes</h3>
                 <div style="text-align:right;margin-bottom:6px;"><button id="createNoteBtn" style="background:#2196F3;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">+ Add Note</button></div>
                 <input type="text" id="eventSearchBox" class="event-search-box" placeholder="🔍 Search notes...">
                 
                 <div id="addNoteForm" style="display:none;background:#f9f9f9;padding:10px;border:1px solid #ddd;margin-bottom:10px;border-radius:6px;">
                     <label style="display:block;margin-bottom:3px;font-weight:bold;">Date:</label>
-                    <input type="date" id="noteDate" style="width:100%;padding:5px;margin-bottom:5px;">
+                    <input type="date" id="noteDate" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ccc;border-radius:4px;">
                     
                     <label style="display:block;margin-bottom:3px;font-weight:bold;">Time:</label>
-                    <input type="time" id="noteTime" step="1" style="width:100%;padding:5px;margin-bottom:5px;">
+                    <input type="time" id="noteTime" step="1" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ccc;border-radius:4px;">
                     
                     <label style="display:block;margin-bottom:3px;font-weight:bold;">Note:</label>
-                    <textarea id="noteText" rows="3" style="width:100%;padding:5px;margin-bottom:5px;"></textarea>
+                    <textarea id="noteText" rows="3" style="width:100%;padding:8px;margin-bottom:8px;border:1px solid #ccc;border-radius:4px;"></textarea>
                     
                     <div id="liveDashaPreview" style="color:#d35400;font-weight:bold;font-size:12px;margin:5px 0;"></div>
                     
-                    <div style="text-align:right;">
-                        <button id="saveNoteBtn" style="background:#4CAF50;color:white;border:none;padding:5px 15px;border-radius:4px;cursor:pointer;">Save</button> 
-                        <button id="cancelNoteBtn" style="background:#999;color:white;border:none;padding:5px 10px;border-radius:4px;cursor:pointer;">Cancel</button>
+                    <div style="text-align:right; margin-top:10px;">
+                        <button id="saveNoteBtn" style="background:#4CAF50;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;font-size:14px;">Save</button> 
+                        <button id="cancelNoteBtn" style="background:#999;color:white;border:none;padding:8px 15px;border-radius:4px;cursor:pointer;margin-left:5px;font-size:14px;">Cancel</button>
                     </div>
                 </div>
                 
@@ -242,10 +268,10 @@
 
             return `
             <div class="timeline-entry">
-                <div style="display:flex;justify-content:space-between;">
+                <div style="display:flex;justify-content:space-between; align-items:center;">
                     <strong>${item.event_date} <span style="color:#666;font-size:11px;">${item.event_time}</span></strong>
                 </div>
-                <div class="note" style="margin:4px 0;">${item.event_notes}</div>
+                <div class="note" style="margin:4px 0; word-wrap:break-word;">${item.event_notes}</div>
                 ${dashaStr ? `<div class="dasha-info">${dashaStr}</div>` : ""}
                 <div style="margin-top:8px;">
                     <button onclick="editEvent(${item.id})">✏️ Edit</button>
@@ -266,7 +292,7 @@
             document.getElementById("noteTime").value = item.event_time;
             document.getElementById("noteText").value = item.event_notes;
             liveUpdateDashaPreview();
-            // Scroll to top
+            // Scroll to top of panel
             document.getElementById(PANEL_ID).scrollTop = 0;
         }
     };
@@ -280,5 +306,5 @@
         }
     };
     
-    console.log("Client Notes Module Loaded");
+    console.log("Client Notes Module Loaded (Mobile Ready)");
 })();
