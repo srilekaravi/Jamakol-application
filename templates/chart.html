@@ -27,6 +27,27 @@
             font-size: 1.5rem;
         }
 
+        .site-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;           /* space between logo & text */
+  padding: 10px 20px;
+}
+
+.logo {
+  height: 60px;        /* ✅ adjust logo size */
+  width: auto;
+}
+
+.site-title {
+  color: darkgreen;    /* ✅ dark green title */
+  font-size: 28px;     /* ✅ increase size */
+  font-weight: 700;
+  margin: 0;           /* remove default h2 margin */
+  letter-spacing: 1px;
+}
+
+
         /* --- FORM BAR (RESPONSIVE) --- */
         #formbar {
             display: flex;
@@ -299,6 +320,16 @@
             #container {
                 gap: 15px;
             }
+            @media (max-width: 600px) {
+  .logo {
+    height: 45px;
+  }
+
+  .site-title {
+    font-size: 20px;
+  }
+}
+
 
             .side-panel {
                 min-width: 100%; /* Stack fully on smaller tablets */
@@ -406,9 +437,11 @@
 </head>
 <body>
 
-  <header class="main-header">
-    <h2 class="logo-title">SMV ASTRO RESEARCH</h2>
+  <header class="site-header">
+  <img src="logo.png" alt="SMV Astro Research Logo" class="logo">
+  <h2 class="site-title">SMV ASTRO RESEARCH</h2>
 </header>
+
 
     <div id="formbar">
         <input id="name" list="nameList" placeholder="பெயர்">
@@ -1050,4 +1083,5 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
