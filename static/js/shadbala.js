@@ -224,7 +224,7 @@ function minimizeShadbalaWindow(container) {
 // 4. Content Renderers (Main Graph & Details)
 function renderMainGraph(data) {
     const content = document.getElementById("shadbalaContent");
-    const tamilMap = { "Sun": "சூரியன்", "Moon": "சந்திரன்", "Mars": "செவ்வாய்", "Merc": "புதன்", "Jup": "குரு", "Ven": "சுக்கிரன்", "Sat": "சனி" };
+    const tamilMap = { "Sun": "சூரி", "Moon": "சந்", "Mars": "செவ்", "Merc": "பு", "Jup": "கு", "Ven": "சுக்", "Sat": "ச" };
 
     let html = `<div style="display:flex; align-items:flex-end; height:220px; gap:10px; margin-bottom:30px; border-bottom:1px solid #ccc; padding-bottom:10px; overflow-x: auto;">`;
     
@@ -480,3 +480,4 @@ function makeDraggable(elmnt) {
         injectShadbalaElements();
     }
 })();
+
