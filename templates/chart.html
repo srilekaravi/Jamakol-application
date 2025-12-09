@@ -26,32 +26,29 @@
             margin-bottom: 15px;
             font-size: 1.5rem;
         }
-
-        .site-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;           /* space between logo & text */
-  padding: 10px 20px;
+.site-header {
+    display: flex;
+    flex-direction: column;      /* ✅ logo மேல, title கீழ */
+    align-items: center;         /* ✅ horizontal center */
+    justify-content: center;     /* ✅ vertical center */
+    text-align: center;
+    padding: 15px;
 }
 
+/* Logo */
 .logo {
-  height: 60px;        /* ✅ adjust logo size */
-  width: auto;
-      align-items: center;
-
+    height: 70px;                /* desktop size */
+    width: auto;
+    margin-bottom: 6px;
 }
 
+/* Title */
 .site-title {
-  color: darkgreen;    /* ✅ dark green title */
-  font-size: 28px;     /* ✅ increase size */
-  font-weight: 700;
-  margin: 0;           /* remove default h2 margin */
-  letter-spacing: 1px;
-      align-items: center;
-
+    color: darkgreen;            /* ✅ dark green */
+    font-size: 30px;             /* ✅ increase size */
+    font-weight: 700;
+    letter-spacing: 1.5px;
 }
-
-
         /* --- FORM BAR (RESPONSIVE) --- */
         #formbar {
             display: flex;
@@ -324,15 +321,16 @@
             #container {
                 gap: 15px;
             }
-            @media (max-width: 600px) {
-  .logo {
-    height: 45px;
-  }
+  @media (max-width: 600px) {
+    .logo {
+        height: 50px;            /* mobile logo size */
+    }
 
-  .site-title {
-    font-size: 20px;
-  }
+    .site-title {
+        font-size: 20px;         /* mobile title size */
+    }
 }
+
 
 
             .side-panel {
@@ -440,12 +438,10 @@
     </style>
 </head>
 <body>
-  <header>
-        <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="logo">
-        <span class="site-title">SMV ASTRO RESEARCH</span>
-    </header>
-
-
+ <header class="site-header">
+    <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="logo">
+    <span class="site-title">SMV ASTRO RESEARCH</span>
+</header>
 
     <div id="formbar">
         <input id="name" list="nameList" placeholder="பெயர்">
@@ -1087,6 +1083,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
