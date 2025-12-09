@@ -1,12 +1,28 @@
 /* static/js/shadbala.js */
 
-// Global state to hold data between views
+// Global state
 window.shadbalaDataCache = null;
 
 // 1. Data Loading
 async function loadShadbala() {
+    // Check if minimized (in taskbar)
+    const taskbarItem = document.getElementById("minimized-shadbala-item");
+    if (taskbarItem) {
+        taskbarItem.click(); // Restore it
+        return;
+    }
+
+    // Check if hidden but exists
+    const container = document.getElementById("shadbalaContainer");
+    if (container && container.style.display === "none") {
+        container.style.display = "flex";
+        // Ensure it's brought to front
+        container.style.zIndex = "20000";
+        return;
+    }
+
     let payload = {};
-    // Reuse global helper if available
+    // Use existing data collection if available
     if (typeof collectChartData === "function") {
         payload = collectChartData();
     } else {
@@ -35,20 +51,20 @@ async function loadShadbala() {
     } catch (e) { console.error(e); }
 }
 
-// 2. UI Rendering (Resizable & Centered & Mobile Friendly)
+// 2. UI Rendering
 function renderShadbalaUI(data) {
     let container = document.getElementById("shadbalaContainer");
     
-    // --- Create Container if Missing ---
+    // Create Container if Missing
     if (!container) {
         container = document.createElement("div");
         container.id = "shadbalaContainer";
         document.body.appendChild(container);
 
-        // --- MOBILE FIX: Responsive Calculation ---
+        // Default Dimensions
         const isMobile = window.innerWidth < 768;
-        const startW = isMobile ? window.innerWidth * 0.96 : 900; // 96% width on mobile
-        const startH = isMobile ? window.innerHeight * 0.7 : 600; // 70% height on mobile
+        const startW = isMobile ? window.innerWidth * 0.95 : 900; 
+        const startH = isMobile ? window.innerHeight * 0.70 : 600; 
         
         const startLeft = (window.innerWidth - startW) / 2;
         const startTop = (window.innerHeight - startH) / 2;
@@ -59,24 +75,22 @@ function renderShadbalaUI(data) {
         container.style.top = startTop + "px";
     }
 
-    // --- Force Styles (Resizable Flexbox) ---
-    // 'resize: both' enables the drag handle in the corner (works mainly on Desktop)
+    // Reset Display & Styles
+    container.style.display = "flex";
     Object.assign(container.style, {
-        display: "flex", flexDirection: "column", 
+        flexDirection: "column", 
         position: "fixed",
         backgroundColor: "#fff",
         border: "1px solid #ccc", borderRadius: "8px",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.5)", zIndex: "10000",
+        boxShadow: "0 20px 50px rgba(0,0,0,0.5)", 
+        zIndex: "20000", // Very high z-index
         resize: "both",         
         overflow: "hidden",     
-        // --- MOBILE FIX: Adjusted Min/Max Widths ---
-        minWidth: window.innerWidth < 600 ? "300px" : "600px", 
-        minHeight: "400px",
-        maxWidth: "98vw",
-        maxHeight: "98vh"
+        minWidth: "300px", minHeight: "400px",
+        maxWidth: "98vw", maxHeight: "98vh",
     });
 
-    // --- Ensure Tooltip Exists ---
+    // Setup Tooltip
     let tooltip = document.getElementById("shadbalaTooltip");
     if (!tooltip) {
         tooltip = document.createElement("div");
@@ -84,58 +98,141 @@ function renderShadbalaUI(data) {
         Object.assign(tooltip.style, {
             position: "fixed", display: "none", background: "rgba(0, 0, 0, 0.95)",
             color: "#fff", padding: "10px", borderRadius: "6px", fontSize: "13px",
-            zIndex: "99999", pointerEvents: "none", boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
+            zIndex: "20001", pointerEvents: "none", boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
             border: "1px solid #777", minWidth: "150px"
         });
         document.body.appendChild(tooltip);
     }
 
-    // --- Header ---
+    // Header HTML
+    // Note: We use specific IDs for buttons to attach events later
     let html = `
     <div id="shadbalaHeader" style="
         flex: 0 0 auto;
-        padding: 12px 15px; cursor: move; background: #673AB7; color: #fff; 
-        border-radius: 8px 8px 0 0; font-weight: bold; display: flex; 
-        justify-content: space-between; align-items: center; user-select: none; touch-action: none;">
-        <span style="font-size:16px;">💪 Shadbala Strength (ஷட்பலம்)</span>
-        <span id="shadCloseBtn" style="cursor: pointer; font-size: 24px; line-height: 1; font-weight: bold;" title="Close">&times;</span>
+        padding: 12px 15px; 
+        cursor: move; 
+        background: #673AB7; 
+        color: #fff; 
+        border-radius: 8px 8px 0 0; 
+        font-weight: bold; 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        user-select: none; 
+        touch-action: none;"> 
+        
+        <span style="pointer-events: none; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 70%;">
+            💪 Shadbala Strength
+        </span>
+        
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div id="shadMinimizeBtn" style="cursor: pointer; font-size: 28px; line-height: 20px; font-weight: bold; width: 30px; text-align: center;">&minus;</div>
+            <div id="shadCloseBtn" style="cursor: pointer; font-size: 28px; line-height: 20px; font-weight: bold; width: 30px; text-align: center;">&times;</div>
+        </div>
     </div>
     
     <div id="shadbalaContent" style="
-        flex: 1 1 auto; 
-        padding: 20px; 
-        overflow-y: auto; 
-        position: relative;">
+        flex: 1 1 auto; padding: 20px; overflow-y: auto; position: relative; background: #fff;">
     </div>`;
 
     container.innerHTML = html;
 
-    // Attach Close Event
-    document.getElementById("shadCloseBtn").onclick = () => {
-        window.hideShadTooltip();
-        container.style.display = 'none';
+    // Attach Content
+    renderMainGraph(data);
+
+    // --- BUTTON EVENTS ---
+    // We attach these specifically to prevent drag interference
+    const btnMin = document.getElementById("shadMinimizeBtn");
+    const btnClose = document.getElementById("shadCloseBtn");
+
+    const stopAndAct = (e, action) => {
+        e.preventDefault(); 
+        e.stopPropagation();
+        action();
     };
 
-    // Render Content
-    renderMainGraph(data);
-    
+    // Minimize Logic
+    btnMin.onmousedown = (e) => stopAndAct(e, () => minimizeShadbalaWindow(container));
+    btnMin.ontouchstart = (e) => stopAndAct(e, () => minimizeShadbalaWindow(container));
+
+    // Close Logic
+    btnClose.onmousedown = (e) => stopAndAct(e, () => {
+        window.hideShadTooltip();
+        container.style.display = 'none';
+    });
+    btnClose.ontouchstart = (e) => stopAndAct(e, () => {
+        window.hideShadTooltip();
+        container.style.display = 'none';
+    });
+
+    // Initialize Dragging
     makeDraggable(container);
 }
 
-// 3. Main Graph View
+// 3. Taskbar & Minimize
+function minimizeShadbalaWindow(container) {
+    window.hideShadTooltip();
+    
+    // Hide Main Window
+    container.style.display = "none";
+
+    // Create/Find Taskbar
+    let taskbar = document.getElementById("appTaskbar");
+    if (!taskbar) {
+        taskbar = document.createElement("div");
+        taskbar.id = "appTaskbar";
+        Object.assign(taskbar.style, {
+            position: "fixed", bottom: "0", left: "0", right: "0",
+            height: "0", // Wrapper has 0 height to not block content
+            zIndex: "20002", 
+            display: "flex", justifyContent: "flex-start", alignItems: "flex-end",
+            pointerEvents: "none", // Let clicks pass through empty space
+            paddingLeft: "10px"
+        });
+        document.body.appendChild(taskbar);
+    }
+
+    // Create Taskbar Item (if not exists)
+    if (document.getElementById("minimized-shadbala-item")) return;
+
+    const item = document.createElement("div");
+    item.id = "minimized-shadbala-item";
+    item.innerHTML = "💪 Shadbala";
+    
+    Object.assign(item.style, {
+        background: "#673AB7", color: "white", 
+        padding: "12px 20px",
+        borderRadius: "8px 8px 0 0", 
+        cursor: "pointer", 
+        fontWeight: "bold",
+        fontSize: "14px",
+        boxShadow: "0 -2px 10px rgba(0,0,0,0.3)", 
+        marginRight: "10px",
+        pointerEvents: "auto", // Enable clicks on the button itself
+        border: "1px solid #512DA8"
+    });
+
+    // Restore Action
+    item.onclick = () => {
+        container.style.display = "flex";
+        item.remove();
+    };
+
+    taskbar.appendChild(item);
+}
+
+// 4. Content Renderers (Main Graph & Details)
 function renderMainGraph(data) {
     const content = document.getElementById("shadbalaContent");
     const tamilMap = { "Sun": "சூரியன்", "Moon": "சந்திரன்", "Mars": "செவ்வாய்", "Merc": "புதன்", "Jup": "குரு", "Ven": "சுக்கிரன்", "Sat": "சனி" };
 
-    // MOBILE FIX: Allow horizontal scroll on the graph container if needed
-    let html = `<div style="display:flex; align-items:flex-end; height:220px; gap:20px; margin-bottom:30px; border-bottom:1px solid #ccc; padding-bottom:10px; overflow-x: auto;">`;
+    let html = `<div style="display:flex; align-items:flex-end; height:220px; gap:10px; margin-bottom:30px; border-bottom:1px solid #ccc; padding-bottom:10px; overflow-x: auto;">`;
     
     data.forEach((p, index) => {
         const h = Math.min((p.rupa / 9) * 100, 100);
         const col = p.ratio >= 1.0 ? "#4CAF50" : "#F44336";
         const tName = tamilMap[p.planet] || p.planet; 
         
-        // Tooltip Content
         const tipContent = `
             <div style='color:#FFEB3B; font-weight:bold; font-size:14px; margin-bottom:5px; border-bottom:1px solid #555;'>${tName}</div>
             <table style='width:100%; color:#eee;'>
@@ -149,49 +246,38 @@ function renderMainGraph(data) {
                     <td style='padding-top:3px;'>Total:</td>
                     <td style='text-align:right; font-weight:bold; color:#4CAF50; padding-top:3px;'>${p.total}</td>
                 </tr>
-            </table>
-        `.replace(/"/g, '&quot;');
+            </table>`.replace(/"/g, '&quot;');
 
         html += `
-        <div class="shad-bar-wrap"
-             data-index="${index}"
-             data-tip-html="${tipContent}"
-             style="flex:1; min-width: 40px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
-            
-            <div style="font-size:14px; font-weight:bold; margin-bottom:5px;">${p.rupa}</div>
-            
-            <div class="shad-bar" 
-                 style="width:100%; background:${col}; height:${h}%; border-radius:4px 4px 0 0; cursor: pointer; transition: opacity 0.2s; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);"
-                 onmouseover="this.style.opacity=0.8"
-                 onmouseout="this.style.opacity=1">
-            </div>
-            
-            <div style="margin-top:8px; font-size:14px; font-weight:bold;">${tName}</div>
+        <div class="shad-bar-wrap" data-index="${index}" data-tip-html="${tipContent}"
+             style="flex:1; min-width: 45px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
+            <div style="font-size:12px; font-weight:bold; margin-bottom:2px;">${p.rupa}</div>
+            <div class="shad-bar" style="width:100%; background:${col}; height:${h}%; border-radius:4px 4px 0 0; cursor: pointer; transition: opacity 0.2s; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);"
+                 onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"></div>
+            <div style="margin-top:5px; font-size:12px; font-weight:bold; white-space:nowrap;">${tName}</div>
         </div>`;
     });
     html += `</div>`;
     
-    // Table Section
-    // MOBILE FIX: Wrap table in responsive div
+    // Table
     html += `<div style="overflow-x:auto;">
-             <table style="width:100%; border-collapse:collapse; font-size:14px; text-align:center; min-width: 500px;">
-             <tr style="background:#f5f5f5; height:40px; border-bottom:2px solid #ddd;">
-                <th style="padding:10px; text-align:left;">Graha</th>
+             <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:center; min-width: 500px;">
+             <tr style="background:#f5f5f5; height:35px; border-bottom:2px solid #ddd;">
+                <th style="padding:5px; text-align:left;">Graha</th>
                 <th>Sthana</th><th>Dig</th><th>Kala</th>
                 <th>Chesta</th><th>Nais</th><th>Drishti</th>
                 <th style="background:#e3f2fd;">Total</th>
-                <th>Rupa</th><th>Ratio</th>
+                <th>Ratio</th>
              </tr>`;
              
     data.forEach(p => {
         const tName = tamilMap[p.planet] || p.planet;
-        html += `<tr style="height:35px; border-bottom:1px solid #eee;">
-                    <td style="font-weight:bold; padding:8px; text-align:left;">${tName}</td>
+        html += `<tr style="height:32px; border-bottom:1px solid #eee;">
+                    <td style="font-weight:bold; padding:5px; text-align:left;">${tName}</td>
                     <td>${p.sthana}</td><td>${p.dig}</td><td>${p.kala}</td>
                     <td>${p.chesta}</td><td>${p.naisargika}</td><td>${p.drik}</td>
                     <td style="background:#e3f2fd; font-weight:bold;">${p.total}</td>
-                    <td style="color:#1976D2; font-weight:bold;">${p.rupa}</td>
-                    <td>${p.ratio}</td>
+                    <td style="color:${p.ratio>=1?'green':'red'}; font-weight:bold;">${p.ratio}</td>
                  </tr>`;
     });
     html += `</table></div>`;
@@ -202,20 +288,16 @@ function renderMainGraph(data) {
     wrappers.forEach(wrap => {
         wrap.onmousemove = (e) => window.handleShadTooltip(e, wrap);
         wrap.onmouseleave = () => window.hideShadTooltip();
-        
         wrap.onclick = () => {
             window.hideShadTooltip();
-            const idx = wrap.getAttribute("data-index");
-            renderDetailView(data[idx]);
+            renderDetailView(data[wrap.getAttribute("data-index")]);
         };
     });
 }
 
-// 4. Detailed View (Drill-down)
 function renderDetailView(pData) {
     const content = document.getElementById("shadbalaContent");
     window.hideShadTooltip();
-
     const tamilMap = { "Sun": "சூரியன்", "Moon": "சந்திரன்", "Mars": "செவ்வாய்", "Merc": "புதன்", "Jup": "குரு", "Ven": "சுக்கிரன்", "Sat": "சனி" };
     const tName = tamilMap[pData.planet] || pData.planet;
 
@@ -230,17 +312,10 @@ function renderDetailView(pData) {
 
     let html = `
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <button id="shadBackBtn" style="
-            padding: 8px 15px; cursor: pointer; background: #333; 
-            color: #fff; border: none; border-radius: 4px; 
-            font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-            ⬅ Back
-        </button>
-        
+        <button id="shadBackBtn" style="padding: 6px 12px; cursor: pointer; background: #333; color: #fff; border: none; border-radius: 4px; font-weight: bold;">⬅ Back</button>
         <h3 style="margin:0; color:#333; font-size:16px;">${tName} - Detailed</h3>
         <div style="width:60px;"></div>
     </div>
-    
     <div style="display:flex; align-items:flex-end; height:300px; gap:10px; border-bottom:2px solid #333; padding-bottom:10px; margin-top:30px; overflow-x: auto;">`;
 
     components.forEach(c => {
@@ -249,30 +324,26 @@ function renderDetailView(pData) {
         <div style="flex:1; min-width: 50px; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
             <div style="font-size:13px; font-weight:bold; margin-bottom:5px;">${c.val}</div>
             <div style="width:100%; background:${c.col}; height:${h}%; border-radius:4px 4px 0 0; box-shadow: 2px 2px 5px rgba(0,0,0,0.2);"></div>
-            <div style="margin-top:10px; font-size:11px; font-weight:bold; text-align:center; word-wrap: break-word;">${c.name.split(" ")[0]}</div>
+            <div style="margin-top:10px; font-size:11px; font-weight:bold; text-align:center;">${c.name.split(" ")[0]}</div>
         </div>`;
     });
 
     html += `</div>
-    <div style="margin-top:40px; padding:15px; background:#e3f2fd; border-radius:8px; text-align:center; display:flex; flex-wrap: wrap; justify-content:space-around; gap: 10px;">
-        <span style="font-size:14px;">Total (Vir): <b>${pData.total}</b></span>
-        <span style="font-size:14px;">Total (Rup): <b>${pData.rupa}</b></span>
-        <span style="font-size:14px;">Ratio: <b style="color:${pData.ratio>=1?'green':'red'}">${pData.ratio}</b></span>
+    <div style="margin-top:20px; padding:15px; background:#e3f2fd; border-radius:8px; text-align:center;">
+        <span style="font-size:14px; margin:0 10px;">Total: <b>${pData.total}</b></span>
+        <span style="font-size:14px; margin:0 10px;">Ratio: <b style="color:${pData.ratio>=1?'green':'red'}">${pData.ratio}</b></span>
     </div>`;
 
     content.innerHTML = html;
 
     document.getElementById("shadBackBtn").onclick = () => {
-        window.hideShadTooltip();
         renderMainGraph(window.shadbalaDataCache);
     };
 }
 
-// 5. Tooltip Functions
 window.handleShadTooltip = function(e, element) {
     const tip = document.getElementById("shadbalaTooltip");
     const content = element.getAttribute("data-tip-html");
-    
     if(tip && content) {
         tip.innerHTML = content;
         tip.style.display = "block";
@@ -286,39 +357,37 @@ window.hideShadTooltip = function() {
     if(tip) tip.style.display = "none";
 };
 
-// 6. Drag Logic (Supports Mouse AND Touch for Mobile)
+// 5. DRAG LOGIC (Fixed for Touch & Mouse)
 function makeDraggable(elmnt) {
-    const header = document.getElementById("shadbalaHeader");
+    var header = document.getElementById("shadbalaHeader");
     if (!header) return;
-    
-    // MOUSE EVENTS
+
+    var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+    // --- MOUSE ---
     header.onmousedown = dragMouseDown;
 
-    // TOUCH EVENTS (Mobile)
-    header.ontouchstart = dragTouchStart;
-
-    // --- Mouse Logic ---
     function dragMouseDown(e) {
-        if(e.target.id === "shadCloseBtn" || (e.target.tagName === "SPAN" && e.target.title === "Close")) return;
+        // IGNORE if clicking buttons
+        if(e.target.closest('#shadCloseBtn') || e.target.closest('#shadMinimizeBtn')) return;
         
         e = e || window.event;
         e.preventDefault();
-        
-        const rect = elmnt.getBoundingClientRect();
-        const shiftX = e.clientX - rect.left;
-        const shiftY = e.clientY - rect.top;
-
+        pos3 = e.clientX;
+        pos4 = e.clientY;
         document.onmouseup = closeDragElement;
-        document.onmousemove = function(e) {
-            elementDrag(e, shiftX, shiftY);
-        };
+        document.onmousemove = elementDrag;
     }
 
-    function elementDrag(e, shiftX, shiftY) {
+    function elementDrag(e) {
         e = e || window.event;
         e.preventDefault();
-        elmnt.style.left = (e.clientX - shiftX) + "px";
-        elmnt.style.top = (e.clientY - shiftY) + "px";
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
     }
 
     function closeDragElement() {
@@ -326,39 +395,41 @@ function makeDraggable(elmnt) {
         document.onmousemove = null;
     }
 
-    // --- Touch Logic (For Mobile) ---
+    // --- TOUCH (Mobile) ---
+    // Passive: false is VITAL for preventing scrolling while dragging
+    header.addEventListener('touchstart', dragTouchStart, { passive: false });
+
     function dragTouchStart(e) {
-        if(e.target.id === "shadCloseBtn") return;
+        if(e.target.closest('#shadCloseBtn') || e.target.closest('#shadMinimizeBtn')) return;
+
+        e.preventDefault(); // Stop scroll
+        var touch = e.touches[0];
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
         
-        const touch = e.touches[0];
-        const rect = elmnt.getBoundingClientRect();
-        const shiftX = touch.clientX - rect.left;
-        const shiftY = touch.clientY - rect.top;
-
-        // Prevent body scroll while dragging header
-        e.preventDefault();
-
-        document.ontouchend = closeDragElementTouch;
-        document.ontouchmove = function(e) {
-            elementDragTouch(e, shiftX, shiftY);
-        };
+        // Listen on document to catch swipes outside header
+        document.addEventListener('touchend', closeDragTouch, { passive: false });
+        document.addEventListener('touchmove', elementDragTouch, { passive: false });
     }
 
-    function elementDragTouch(e, shiftX, shiftY) {
-        // Prevent Pull-to-refresh
-        // e.preventDefault(); 
-        const touch = e.touches[0];
-        elmnt.style.left = (touch.clientX - shiftX) + "px";
-        elmnt.style.top = (touch.clientY - shiftY) + "px";
+    function elementDragTouch(e) {
+        e.preventDefault(); // Stop scroll
+        var touch = e.touches[0];
+        pos1 = pos3 - touch.clientX;
+        pos2 = pos4 - touch.clientY;
+        pos3 = touch.clientX;
+        pos4 = touch.clientY;
+        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
     }
 
-    function closeDragElementTouch() {
-        document.ontouchend = null;
-        document.ontouchmove = null;
+    function closeDragTouch() {
+        document.removeEventListener('touchend', closeDragTouch);
+        document.removeEventListener('touchmove', elementDragTouch);
     }
 }
 
-// 7. Injection (Button Only)
+// 6. Injection
 (function() {
     function injectShadbalaElements() {
         if (document.getElementById("btnShadbala")) return;
@@ -368,13 +439,13 @@ function makeDraggable(elmnt) {
         btn.innerText = "💪 Shadbala";
         btn.onclick = loadShadbala;
         
-        btn.style.marginLeft = "5px"; 
-        btn.style.padding = "6px 10px";
-        btn.style.background = "#673AB7"; 
-        btn.style.color = "white";
-        btn.style.border = "none";
-        btn.style.borderRadius = "4px";
-        btn.style.cursor = "pointer";
+        // Button Styles
+        Object.assign(btn.style, {
+            marginLeft: "5px", padding: "6px 10px",
+            background: "#673AB7", color: "white",
+            border: "none", borderRadius: "4px",
+            cursor: "pointer", fontSize: "14px"
+        });
 
         const formbar = document.getElementById("formbar");
         const ashtakavargaBtn = document.getElementById("toggleAshtakavargaBtn");
@@ -395,6 +466,7 @@ function makeDraggable(elmnt) {
                     originalGenerate.apply(this, args);
                 }
                 const container = document.getElementById("shadbalaContainer");
+                // Only reload if visible
                 if (container && container.style.display !== "none") {
                     loadShadbala();
                 }
