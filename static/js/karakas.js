@@ -1,38 +1,61 @@
-﻿/* static/js/karakas.js */
+/* static/js/karakas.js */
 
 (function() {
-    // ... (Keep your existing Button Inject & Table Logic here) ...
-    let isKarakasVisible = false;
+    // 1. Global State
+    let karakaCache = null; 
+    let lastChartRows = []; 
+    
+    const tamilPlanetMap = { 
+        "Sun": "சூரியன்", "Moon": "சந்திரன்", "Mars": "செவ்வாய்", 
+        "Mercury": "புதன்", "Jupiter": "குரு", "Venus": "சுக்கிரன்", 
+        "Saturn": "சனி", "Rahu": "ராகு", "Ketu": "கேது"
+    };
 
-    function injectKarakaButton() {
-        if (document.getElementById("btnKarakas")) return;
-        const btn = document.createElement("button");
-        btn.id = "btnKarakas";
-        btn.innerText = "👑 Jaimini Karakas";
-        btn.onclick = toggleKarakas;
-        Object.assign(btn.style, {
-            marginLeft: "5px", padding: "6px 10px",
-            background: "#673AB7", color: "white",
-            border: "none", borderRadius: "4px", cursor: "pointer"
+    // 2. Inject Checkbox
+    function injectKarakaCheckbox() {
+        if (document.getElementById("chkKarakasContainer")) return;
+
+        const container = document.createElement("div");
+        container.id = "chkKarakasContainer";
+        Object.assign(container.style, {
+            display: "inline-flex", alignItems: "center", marginLeft: "10px"
         });
+
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.id = "chkKarakas";
+        chk.style.cursor = "pointer";
+        chk.onchange = handleKarakaToggle;
+
+        const label = document.createElement("label");
+        label.htmlFor = "chkKarakas";
+        label.innerText = " Jaimini Karakas";
+        Object.assign(label.style, {
+            marginLeft: "5px", cursor: "pointer", fontWeight: "bold", color: "#673AB7"
+        });
+
+        container.appendChild(chk);
+        container.appendChild(label);
+
         const formbar = document.getElementById("formbar");
-        if (formbar) formbar.appendChild(btn);
+        if (formbar) formbar.appendChild(container);
     }
 
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", injectKarakaButton);
-    else injectKarakaButton();
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", injectKarakaCheckbox);
+    else injectKarakaCheckbox();
 
-    function toggleKarakas() {
-        const container = document.getElementById("karakasContainer");
-        if (container && container.style.display !== "none") {
-            container.style.display = "none";
-        } else {
-            loadKarakas();
+    // 3. Toggle Logic
+    async function handleKarakaToggle() {
+        const isChecked = document.getElementById("chkKarakas").checked;
+        if (isChecked && !karakaCache) {
+            await fetchAndStoreKarakas();
+        }
+        if (window.renderChart && lastChartRows.length > 0) {
+            window.renderChart(lastChartRows);
         }
     }
 
-    async function loadKarakas() {
-        // ... (Same loading logic as before) ...
+    async function fetchAndStoreKarakas() {
         let payload = {};
         if (typeof collectChartData === "function") payload = collectChartData();
         else {
@@ -40,64 +63,33 @@
             const t = document.getElementById("time")?.value;
             payload = { date: d, time: t, tz: 5.5 };
         }
+
         try {
+            document.body.style.cursor = "wait";
             const res = await fetch("/compute_karakas", {
                 method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             });
             const json = await res.json();
-            if(json.status === "ok") renderKarakaTable(json.data);
-        } catch (e) { console.error(e); }
-    }
-
-    function renderKarakaTable(data) {
-       // ... (Same table rendering logic as before) ...
-       let container = document.getElementById("karakasContainer");
-       if (!container) {
-            container = document.createElement("div");
-            container.id = "karakasContainer";
-            document.body.appendChild(container);
-            // ... styles ...
-            Object.assign(container.style, {
-                position: "fixed", left: "50%", top: "50%", transform: "translate(-50%,-50%)",
-                width: "500px", height: "400px", backgroundColor: "#fff", border: "1px solid #ccc",
-                borderRadius: "8px", boxShadow: "0 10px 30px rgba(0,0,0,0.3)", zIndex: "10002",
-                display: "flex", flexDirection: "column", resize: "both", overflow: "hidden"
-            });
-       } else {
-           container.style.display = "flex";
-       }
-       // ... (HTML content generation) ...
-       const tamilPlanetMap = { "Sun": "சூரியன்", "Moon": "சந்திரன்", "Mars": "செவ்வாய்", "Mercury": "புதன்", "Jupiter": "குரு", "Venus": "சுக்கிரன்", "Saturn": "சனி" };
-       const tamilSignMap = { "Mesham": "மேஷம்", "Rishabam": "ரிஷபம்", "Mithunam": "மிதுனம்", "Kadagam": "கடகம்", "Simmam": "சிம்மம்", "Kanni": "கன்னி", "Thulaam": "துலாம்", "Vrischikam": "விருச்சிகம்", "Dhanusu": "தனுசு", "Makaram": "மகரம்", "Kumbam": "கும்பம்", "Meenam": "மீனம்" };
-
-       const html = `
-        <div id="karakasHeader" style="flex: 0 0 auto; padding: 12px; background: #673AB7; color: #fff; font-weight: bold; border-radius: 8px 8px 0 0; cursor: move; display: flex; justify-content: space-between; align-items: center;">
-            <span>👑 Jaimini Chara Karakas</span>
-            <span id="closeKarakasBtn" style="cursor:pointer; font-size:20px;">&times;</span>
-        </div>
-        <div style="flex: 1 1 auto; overflow: auto; padding: 0;">
-            <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:center;">
-                <tr style="background:#f5f5f5; height:35px; border-bottom:1px solid #ddd;"><th>Karaka</th><th>Planet</th><th>Sign</th><th>Degree</th></tr>
-                ${data.map(r => `<tr style="border-bottom:1px solid #eee; height:30px;"><td title="${r.karaka_name}" style="font-weight:bold; color:#673AB7; cursor:help;">${r.karaka_code} <span style="font-size:11px; color:#555;">(${r.karaka_tamil})</span></td><td style="font-weight:bold;">${tamilPlanetMap[r.planet] || r.planet}</td><td>${tamilSignMap[r.sign] || r.sign}</td><td style="font-family:monospace; color:#444;">${r.degree}</td></tr>`).join('')}
-            </table>
-        </div>`;
-       container.innerHTML = html;
-       document.getElementById("closeKarakasBtn").onclick = () => container.style.display = "none";
-       makeDraggable(container, document.getElementById("karakasHeader"));
-    }
-
-    function makeDraggable(elmnt, header) {
-        let pos1=0, pos2=0, pos3=0, pos4=0;
-        header.onmousedown = (e) => { e.preventDefault(); pos3=e.clientX; pos4=e.clientY; document.onmouseup=close; document.onmousemove=drag; };
-        function drag(e) { e.preventDefault(); pos1=pos3-e.clientX; pos2=pos4-e.clientY; pos3=e.clientX; pos4=e.clientY; elmnt.style.top=(elmnt.offsetTop-pos2)+"px"; elmnt.style.left=(elmnt.offsetLeft-pos1)+"px"; }
-        function close() { document.onmouseup=null; document.onmousemove=null; }
+            
+            if(json.status === "ok") {
+                karakaCache = {};
+                json.data.forEach(item => {
+                    const tamilName = tamilPlanetMap[item.planet];
+                    if (tamilName) karakaCache[tamilName] = item.karaka_code;
+                });
+            }
+        } catch (e) { console.error("Error fetching Karakas:", e); } 
+        finally { document.body.style.cursor = "default"; }
     }
 
     // ============================================================
-    // 🚀 OVERWRITE CHART RENDERER TO ADD TOOLTIPS (Without modifying HTML)
+    // 🚀 FIXED RENDERER: USES FLEX-ROW TO FORCE SIDE-BY-SIDE
     // ============================================================
     window.renderChart = function(rows) {
+        lastChartRows = rows; 
+
+        const isKarakasEnabled = document.getElementById("chkKarakas")?.checked;
         const tamilRasis = ["மேஷம்", "ரிஷபம்", "மிதுனம்", "கடகம்", "சிம்மம்", "கன்னி", "துலாம்", "விருச்சிகம்", "தனுசு", "மகரம்", "கும்பம்", "மீனம்"];
         const grid = {}; 
         tamilRasis.forEach(r => grid[r] = []);
@@ -118,26 +110,39 @@
             const color = planetColors[r.name] || "#000";
             if (r.name === "லக்னம்" || r.name === "Lagna") lagnaRasi = rasi;
             
-            const label = r.grid_label || `(${r.name})`;
+            // 1. Prepare Name HTML
+            const nameHtml = `<span style='color:${color}; font-weight:bold;'>${r.grid_label || r.name}</span>`;
             
-            // Degree
-            let shortDeg = "";
-            if (r.dms) {
-                let match = r.dms.match(/(\d+)[°:] ?(\d+)/);
-                if (match) shortDeg = `${match[1]}°${match[2]}'`;
-                else if (typeof r.dms === "string") shortDeg = r.dms.replace(/[^\d°′]/g, "").slice(0, 6);
+            // 2. Prepare Karaka HTML
+            let karakaHtml = "";
+            if (isKarakasEnabled && karakaCache && karakaCache[r.name]) {
+                karakaHtml = `<span style="font-size:0.85em; font-weight:normal; color:#555; margin-left:4px;">(${karakaCache[r.name]})</span>`;
             }
 
-            // ✅ ADD TOOLTIP HERE (Using title attribute)
-            // If 'karaka' exists (AK, AmK), use it. Otherwise just Name.
-            const tooltipText = r.karaka ? ` ${r.karaka}` : r.name;
+            // 3. Prepare Degree HTML
+            let degreeHtml = "";
+            if (r.dms) {
+                let match = r.dms.match(/(\d+)[°:] ?(\d+)/);
+                if (match) {
+                    degreeHtml = `<div style="font-size:11px; color:#666; margin-top:0px;">${match[1]}°${match[2]}'</div>`;
+                } else if (typeof r.dms === "string") {
+                    degreeHtml = `<div style="font-size:11px; color:#666; margin-top:0px;">${r.dms.replace(/[^\d°′]/g, "").slice(0, 6)}</div>`;
+                }
+            }
 
-            grid[rasi].push(
-                `<span style='color:${color}; font-weight:bold; cursor:help;' title='${tooltipText}'>
-                    ${label}
-                 </span>` +
-                (shortDeg ? `<small>${shortDeg}</small>` : "")
-            );
+            // 4. Combine into Layout
+            // We use 'display: flex; flex-direction: row' on the wrapper to FORCE them onto the same line.
+            const rowContent = `
+                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom:3px;">
+                    <div style="display:flex; flex-direction:row; align-items:center; justify-content:center; white-space:nowrap; width:100%;">
+                        ${nameHtml}
+                        ${karakaHtml}
+                    </div>
+                    ${degreeHtml}
+                </div>
+            `;
+
+            grid[rasi].push(rowContent);
         });
 
         // Render Grid
@@ -149,7 +154,9 @@
                 if (r === null) chart.innerHTML += "<div></div>";
                 else {
                     const hl = (r === lagnaRasi);
-                    chart.innerHTML += `<div class='chart-box' style='background:${hl ? "#fff8e1" : "#fff"}; border-color:${hl ? "#ff9800" : "#000"};'>${grid[r].join("<br>")}</div>`;
+                    chart.innerHTML += `<div class='chart-box' style='background:${hl ? "#fff8e1" : "#fff"}; border-color:${hl ? "#ff9800" : "#000"}; display:flex; flex-direction:column; justify-content:center; align-items:center;'>
+                        ${grid[r].join("")} 
+                    </div>`;
                 }
             });
         }
