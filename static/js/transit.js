@@ -1,4 +1,4 @@
-// static/js/transit.js — FINAL FIXED VERSION (Body Append + Explicit Natchatra Keys)
+// static/js/transit.js — FINAL FIXED: Mobile Drag + Star Lord Fail-Safe
 (function () {
     const BTN_ID = "toggleTransitBtn";
     const CONTAINER_ID = "transitContainer";
@@ -26,6 +26,37 @@
         "மீனம்": "குரு", "Pisces": "குரு"
     };
 
+    // FAIL-SAFE: If API misses Star Lord, we derive it from the Star Name
+    const starLordMap = {
+        // Ketu Stars
+        "Ashwini": "கேது", "Ashvini": "கேது", "Magha": "கேது", "Moola": "கேது", "Mula": "கேது",
+        "அசுவினி": "கேது", "மகம்": "கேது", "மூலம்": "கேது",
+        // Venus Stars
+        "Bharani": "சுக்கிரன்", "Purva Phalguni": "சுக்கிரன்", "Puram": "சுக்கிரன்", "Purva Ashadha": "சுக்கிரன்", "Pooram": "சுக்கிரன்",
+        "பரணி": "சுக்கிரன்", "பூரம்": "சுக்கிரன்", "பூராடம்": "சுக்கிரன்",
+        // Sun Stars
+        "Krittika": "சூரியன்", "Karthigai": "சூரியன்", "Uttara Phalguni": "சூரியன்", "Uthiram": "சூரியன்", "Uttara Ashadha": "சூரியன்", "Uthiradam": "சூரியன்",
+        "கார்த்திகை": "சூரியன்", "உத்திரம்": "சூரியன்", "உத்திராடம்": "சூரியன்",
+        // Moon Stars
+        "Rohini": "சந்திரன்", "Hasta": "சந்திரன்", "Hastham": "சந்திரன்", "Shravana": "சந்திரன்", "Thiruvonam": "சந்திரன்",
+        "ரோகிணி": "சந்திரன்", "அஸ்தம்": "சந்திரன்", "திருவோணம்": "சந்திரன்",
+        // Mars Stars
+        "Mrigashirsha": "செவ்வாய்", "Mrigasheerisham": "செவ்வாய்", "Chitra": "செவ்வாய்", "Chithirai": "செவ்வாய்", "Dhanishta": "செவ்வாய்", "Avittam": "செவ்வாய்",
+        "மிருகசீரிடம்": "செவ்வாய்", "சித்திரை": "செவ்வாய்", "அவிட்டம்": "செவ்வாய்",
+        // Rahu Stars
+        "Ardra": "ராகு", "Thiruvathirai": "ராகு", "Swati": "ராகு", "Swathi": "ராகு", "Shatabhisha": "ராகு", "Sathayam": "ராகு",
+        "திருவாதிரை": "ராகு", "சுவாதி": "ராகு", "சதயம்": "ராகு",
+        // Jupiter Stars
+        "Punarvasu": "குரு", "Punarpusam": "குரு", "Vishakha": "குரு", "Visakam": "குரு", "Purva Bhadrapada": "குரு", "Poorattathi": "குரு",
+        "புனர்பூசம்": "குரு", "விசாகம்": "குரு", "பூரட்டாதி": "குரு",
+        // Saturn Stars
+        "Pushya": "சனி", "Poosam": "சனி", "Anuradha": "சனி", "Anusham": "சனி", "Uttara Bhadrapada": "சனி", "Uthirattathi": "சனி",
+        "பூசம்": "சனி", "அனுஷம்": "சனி", "உத்திரட்டாதி": "சனி",
+        // Mercury Stars
+        "Ashlesha": "புதன்", "Ayilyam": "புதன்", "Jyeshtha": "புதன்", "Kettai": "புதன்", "Revati": "புதன்", "Revathi": "புதன்",
+        "ஆயில்யம்": "புதன்", "கேட்டை": "புதன்", "ரேவதி": "புதன்"
+    };
+
     const planetColors = {
         "சூரியன்": "#e67e22", "சந்திரன்": "#3498db", "செவ்வாய்": "#ff4d4d", "புதன்": "#27ae60", "குரு": "#f1c40f",
         "சுக்கிரன்": "#f78fb3", "சனி": "#2c3e50", "ராகு": "#8e44ad", "கேது": "#95a5a6", "மாந்தி": "#34495e", "லக்னம்": "#ff7f00"
@@ -33,19 +64,21 @@
 
     function getShortName(name) {
         if (!name) return "";
+        const n = name.toString().trim();
         const map = {
             "சூரியன்": "சூரி", "சந்திரன்": "சந்", "செவ்வாய்": "செவ்", "புதன்": "புத",
             "குரு": "குரு", "சுக்கிரன்": "சுக்", "சனி": "சனி", "ராகு": "ராகு", "கேது": "கேது",
             "Sun": "சூரி", "Moon": "சந்", "Mars": "செவ்", "Mercury": "புத",
             "Jupiter": "குரு", "Venus": "சுக்", "Saturn": "சனி", "Rahu": "ராகு", "Ketu": "கேது"
         };
-        return map[name] || (name.length > 3 ? name.substring(0, 3) : name);
+        return map[n] || map[n.charAt(0).toUpperCase() + n.slice(1)] || (n.length > 3 ? n.substring(0, 3) : n);
     }
 
     const css = `
   #${CONTAINER_ID}{position:absolute;left:0;top:620px;display:none;gap:8px;z-index:9999;align-items:flex-start;}
   #${BOX_ID}{width:520px;background:#fffef8;border:2px solid #ccc;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.15);}
-  #transitHeader{background:#fdf4d0;padding:8px 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center;cursor:grab;border-bottom:1px solid #ddd;border-radius:10px 10px 0 0; user-select:none;}
+  /* Added touch-action:none to fix mobile drag conflict */
+  #transitHeader{background:#fdf4d0;padding:8px 10px;font-weight:600;display:flex;justify-content:space-between;align-items:center;cursor:grab;border-bottom:1px solid #ddd;border-radius:10px 10px 0 0; user-select:none; touch-action:none;}
   #transitHeader .close-btn {cursor:pointer; font-size:16px; color:#555; padding:0 4px;}
   #transitHeader .close-btn:hover {color:#d00;}
   #${HISTORY_ID}{width:520px;max-height:520px;overflow:auto;background:#f7fbff;border:2px solid #cfe2ff;border-radius:10px;padding:8px;box-shadow:0 6px 18px rgba(0,0,0,0.08);}
@@ -64,8 +97,14 @@
   .notes-panel{position:absolute;width:360px;background:#fff;border:2px solid #ddd;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);z-index:10002;padding:8px;overflow:auto;}
   .notes-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;}
   .tiny-btn{padding:4px 6px;font-size:12px;border-radius:6px;cursor:pointer;}
+  
+  /* MOBILE FIX: Removed !important from top/left so drag works */
   @media (max-width: 600px) {
-    #${CONTAINER_ID} { top: 10% !important; left: 50% !important; transform: translateX(-50%); width: 95%; max-width: 95%; flex-direction: column; }
+    #${CONTAINER_ID} { 
+      width: 95%; max-width: 95%; flex-direction: column;
+      /* Only set initial position, do not use !important on top/left */
+      left: 2.5%; top: 100px;
+    }
     #${BOX_ID}, #${HISTORY_ID} { width: 100%; max-width: 100%; }
     .transit-cell { min-height: 80px; font-size: 10px; }
     #transit-center-label { font-size: 14px; }
@@ -81,7 +120,6 @@
     btn.addEventListener("click", async () => {
         if (!container) {
             container = createContainer();
-            // FIX: Append to document.body to prevent relative positioning "jump" issues
             document.body.appendChild(container);
         }
         if (!container.style.display || container.style.display === "none") {
@@ -113,20 +151,16 @@
         return wrap;
     }
 
-    // --- DRAG FIX: Uses pageX/Y + Shift Calculation ---
     function enableDrag(el, handle) {
-        let isDragging = false;
-        let shiftX = 0;
-        let shiftY = 0;
-
+        let isDragging = false, shiftX = 0, shiftY = 0;
         handle.addEventListener("pointerdown", e => {
             if (e.target.classList.contains('close-btn')) return; 
             if (e.button !== 0) return;
             
-            e.preventDefault(); // CRITICAL: Prevents text selection which causes lag/jump
+            // Prevent scrolling on touch devices
+            e.preventDefault(); 
             isDragging = true;
             
-            // Calculate offset from the top-left of the window
             const rect = el.getBoundingClientRect();
             shiftX = e.clientX - rect.left;
             shiftY = e.clientY - rect.top;
@@ -137,7 +171,7 @@
 
         window.addEventListener("pointermove", e => {
             if (!isDragging) return;
-            // Absolute position relative to body
+            e.preventDefault(); // Stop screen drag on mobile
             el.style.left = (e.pageX - shiftX) + "px";
             el.style.top = (e.pageY - shiftY) + "px";
         });
@@ -184,7 +218,7 @@
         let lagna = null;
         (rows || []).forEach(r => {
             const name = r.name || r.graha_ta || "";
-            const short = r.short || name;
+            const short = getShortName(name);
             const rasi = r.rasi || r.rasi_ta || "";
             if (!rasi) return;
             if (name === "லக்னம்") lagna = rasi;
@@ -192,27 +226,30 @@
             const retro = (r.retro_flag === "வ");
             const color = planetColors[name] || "#000";
 
-            // --- DATA EXTRACTION ---
-            
-            // 1. Rasi Lord
+            // --- 1. Rasi Lord ---
             const rasiLordFull = rasiOwners[rasi] || rasiOwners[r.rasi] || "";
             const rasiLordShort = getShortName(rasiLordFull);
 
-            // 2. Natchatra (Star) - Checking 'natchatra' specifically + others
-            const natchatraFull = r.natchatra || r.natchatra_ta || r.nakshatra || r.nakshatra_ta || r.star || r.star_ta || "";
+            // --- 2. Natchatra (Star) ---
+            const starName = r.natchatra || r.natchatra_ta || r.star || r.star_ta || r.nakshatra || "";
+
+            // --- 3. Natchatra Lord (Star Lord) - WITH FAIL-SAFE ---
+            // Try API keys first
+            let rawLord = r.natchatra_lord || r.natchatra_lord_ta || r.star_lord || r.star_lord_ta || r.starlord || r.sl || r.nakshatra_lord || r.lord || "";
             
-            // 3. Natchatra Lord (Star Lord) - Checking 'natchatra_lord' specifically + others
-            const natchatraLordFull = r.natchatra_lord || r.natchatra_lord_ta || r.nakshatra_lord || r.starlord || r.star_lord || r.sl || "";
-            const natchatraLordShort = getShortName(natchatraLordFull);
-            
-            // Format: "RasiLord / StarLord" -> "சந்/சனி"
+            // If API empty, try looking it up in our Fail-Safe Map using the Star Name
+            if (!rawLord && starName) {
+                rawLord = starLordMap[starName] || "";
+            }
+
+            const natchatraLordShort = getShortName(rawLord);
+
+            // --- 4. Tooltip Construction ---
+            // "RasiLord / StarLord" -> "சந்/சனி"
             let tooltipTitle = name; 
             if (rasiLordShort || natchatraLordShort) {
-                tooltipTitle = `${rasiLordShort || "?"} / ${natchatraLordShort || "?"}`;
-            } 
-            
-            // Uncomment to debug if still missing:
-            // console.log("Planet:", name, "Star:", natchatraFull, "Lord:", natchatraLordFull, "Row:", r);
+                tooltipTitle = `${rasiLordShort || "?"}/${natchatraLordShort || "?"}`;
+            }
 
             const label = `<span title="${tooltipTitle}" style="color:${color};font-weight:600;cursor:help;">
                              ${retro ? `(${short})` : short}
