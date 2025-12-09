@@ -1,4 +1,4 @@
-/* static/js/ashtakavarga.js — Mobile Compatible & Touch Fix */
+/* static/js/ashtakavarga.js — Mobile Touch Fix for Buttons & Checkbox */
 
 (function () {
     "use strict";
@@ -79,9 +79,18 @@
         };
     }
 
-    // --- UPDATED: Added Touch Events for Mobile Dragging ---
+    // --- UPDATED: Robust Mobile Drag Logic ---
     function makeDraggable(el, handle) {
         let x=0,y=0,dx=0,dy=0,drag=false;
+
+        const isInteractive = (target) => {
+            // Check if the touched element is a button, input, or label (or inside one)
+            return target.tagName === "BUTTON" || 
+                   target.tagName === "INPUT" || 
+                   target.tagName === "LABEL" || 
+                   target.closest("button") || 
+                   target.closest("label");
+        };
 
         const startDrag = (clientX, clientY) => {
             drag=true; 
@@ -93,8 +102,6 @@
             if(!drag) return; 
             x = clientX - dx; 
             y = clientY - dy; 
-            // Optional: Keep inside screen bounds
-            // if(x < 0) x = 0; if(y < 0) y = 0;
             el.style.left=x+"px"; 
             el.style.top=y+"px"; 
         };
@@ -103,7 +110,7 @@
 
         // Mouse Events
         (handle||el).onmousedown = e => {
-            if(e.target.tagName==="BUTTON"||e.target.tagName==="INPUT")return;
+            if (isInteractive(e.target)) return; // Allow click to pass through
             startDrag(e.clientX, e.clientY);
             document.addEventListener('mouseup', endDrag, {once:true});
             document.addEventListener('mousemove', ev => moveDrag(ev.clientX, ev.clientY));
@@ -111,18 +118,18 @@
 
         // Touch Events (Mobile)
         (handle||el).ontouchstart = e => {
-            if(e.target.tagName==="BUTTON"||e.target.tagName==="INPUT")return;
+            if (isInteractive(e.target)) return; // CRITICAL FIX: Allow touch to pass to buttons/inputs
+            
             const t = e.touches[0];
             startDrag(t.clientX, t.clientY);
-            // Prevent default to stop scrolling while dragging
-            // e.preventDefault(); 
         };
 
         (handle||el).ontouchmove = e => {
             if(!drag) return;
             const t = e.touches[0];
             moveDrag(t.clientX, t.clientY);
-            e.preventDefault(); // Stop screen from scrolling
+            // Only prevent default if we are actually dragging
+            if(drag) e.preventDefault(); 
         };
 
         (handle||el).ontouchend = endDrag;
@@ -134,7 +141,6 @@
 
         popup = document.createElement("div");
         popup.id = "ashtakaPopup";
-        // --- UPDATED CSS: Responsive Width & Centering for Mobile ---
         popup.style.cssText = `
             position:fixed; 
             left:5%; top:10%; 
@@ -147,7 +153,7 @@
         `;
 
         const header = document.createElement("div");
-        header.style.cssText = "flex:0 0 auto; background:#fff3e0; padding:8px; display:flex; justify-content:space-between; align-items:center; cursor:move; border-bottom:1px solid #ccc;";
+        header.style.cssText = "flex:0 0 auto; background:#fff3e0; padding:8px; display:flex; justify-content:space-between; align-items:center; cursor:move; border-bottom:1px solid #ccc; touch-action: none;"; // Added touch-action:none
         
         const titleDiv = document.createElement("div");
         titleDiv.id = "ashtakaTitle";
@@ -179,7 +185,6 @@
         content.style.cssText = "flex:1 1 auto; overflow-y:auto; padding:10px; display:flex; flex-direction:column; align-items:center; gap:10px;";
 
         const chartContainer = document.createElement("div");
-        // --- UPDATED CSS: Fluid Chart Size for Mobile ---
         chartContainer.style.cssText = "width:100%; max-width:300px; aspect-ratio:1/1; position:relative; border:2px solid #333; background:#fafafa; flex-shrink:0; box-shadow:0 2px 5px rgba(0,0,0,0.1); margin:0 auto;";
         chartContainer.id = "ashtakaChart";
 
@@ -191,10 +196,22 @@
         popup.append(content);
         document.body.append(popup);
 
-        closeBtn.onclick = () => (popup.style.display = "none");
+        // Explicit listeners for better mobile response
+        closeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            popup.style.display = "none";
+        });
+        
+        // Touch end fallback for close button
+        closeBtn.addEventListener('touchend', (e) => {
+            e.stopPropagation();
+            e.preventDefault(); // prevent mouse emulation
+            popup.style.display = "none";
+        });
+
         makeDraggable(popup, header);
 
-        btnTable.onclick = () => {
+        const toggleTable = () => {
             const isVisible = tableDiv.style.display === "block";
             tableDiv.style.display = isVisible ? "none" : "block";
             if (!isVisible) { 
@@ -202,6 +219,14 @@
                 if (d) renderTable(d.ashtakavarga || d, tableDiv);
             }
         };
+
+        btnTable.onclick = toggleTable;
+        // Touch support for table button
+        btnTable.addEventListener('touchend', (e) => {
+             e.stopPropagation();
+             e.preventDefault();
+             toggleTable();
+        });
 
         return popup;
     }
