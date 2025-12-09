@@ -1,41 +1,37 @@
-﻿/* static/js/padas.js */
+/* static/js/padas.js */
 
 (function() {
-    // State to track visibility
-    let isPadasVisible = false;
+    // 1. Inject Checkbox
+    function injectPadasCheckbox() {
+        if (document.getElementById("chkPadasContainer")) return;
 
-    // 1. Inject Button
-    function injectPadasButton() {
-        if (document.getElementById("btnPadas")) return;
+        const container = document.createElement("label");
+        container.id = "chkPadasContainer";
+        container.style.cssText = "margin-left:10px; padding: 6px 8px; font-weight:bold; font-size:10px; cursor:pointer; display:inline-flex; align-items:center; background:#fff; border:1px solid #ccc; border-radius:4px;";
 
-        const btn = document.createElement("button");
-        btn.id = "btnPadas";
-        btn.innerText = "🔮 Arudha Padas";
-        btn.onclick = togglePadas;
-        
-        Object.assign(btn.style, {
-            marginLeft: "5px", padding: "6px 10px",
-            background: "#009688", color: "white",
-            border: "none", borderRadius: "4px", cursor: "pointer"
-        });
+        const chk = document.createElement("input");
+        chk.type = "checkbox";
+        chk.id = "chkPadas";
+        chk.style.marginRight = "5px";
+        chk.onchange = togglePadas;
+
+        container.appendChild(chk);
+        container.appendChild(document.createTextNode("🔮 Arudha Padas"));
 
         const formbar = document.getElementById("formbar");
-        if (formbar) formbar.appendChild(btn);
+        if (formbar) formbar.appendChild(container);
     }
 
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", injectPadasButton);
-    else injectPadasButton();
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", injectPadasCheckbox);
+    else injectPadasCheckbox();
 
     // 2. Toggle Logic
-    function togglePadas() {
-        if (isPadasVisible) {
+    function togglePadas(e) {
+        const isChecked = e.target.checked;
+        if (!isChecked) {
             document.querySelectorAll(".pada-container").forEach(e => e.remove());
-            const table = document.getElementById("padasContainer");
-            if (table) table.style.display = "none";
-            isPadasVisible = false;
         } else {
             loadPadas();
-            isPadasVisible = true;
         }
     }
 
@@ -47,7 +43,12 @@
             const d = document.getElementById("date")?.value;
             const t = document.getElementById("time")?.value;
             const p = document.getElementById("placeSearch");
-            payload = { date: d, time: t, lat: p?.getAttribute("data-lat") || 13.0827, lon: p?.getAttribute("data-lon") || 80.2707, tz: p?.getAttribute("data-tz") || 5.5 };
+            payload = { 
+                date: d, time: t, 
+                lat: p?.getAttribute("data-lat") || 13.0827, 
+                lon: p?.getAttribute("data-lon") || 80.2707, 
+                tz: p?.getAttribute("data-tz") || 5.5 
+            };
         }
 
         try {
@@ -57,15 +58,20 @@
             });
             const json = await res.json();
             if(json.status === "ok") {
-                renderPadaTable(json.data);
                 overlayPadasOnChart(json.data);
             } else {
                 alert("Error: " + json.message);
+                const chk = document.getElementById("chkPadas");
+                if(chk) chk.checked = false;
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            const chk = document.getElementById("chkPadas");
+            if(chk) chk.checked = false;
+        }
     }
 
-    // 4. Overlay on Chart
+    // 4. Overlay on Chart (Updated for Font Size & Tooltip)
     function overlayPadasOnChart(data) {
         const chartBoxes = document.querySelectorAll(".chart-box");
         if(chartBoxes.length !== 12) return; 
@@ -89,110 +95,40 @@
                 if (!container) {
                     container = document.createElement("div");
                     container.className = "pada-container";
-                    container.style.cssText = "display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; padding-top:2px; border-top:1px dotted #ccc; justify-content:center; width:100%;";
+                    // Removed dotted border, just simple container
+                    container.style.cssText = "display:flex; flex-wrap:wrap; gap:4px; margin-top:2px; padding-top:2px; justify-content:center; width:100%;";
                     box.appendChild(container);
                 }
 
                 const badge = document.createElement("span");
-                badge.innerText = p.label;
-                // Show degree in tooltip on the chart marker
-                badge.title = `${p.label} (${p.sign_name}) @ ${p.degree}`;
                 
-                if (p.label === "AL") {
-                    badge.style.cssText = "font-size:14px; color:#D32F2F; font-weight:900; padding:0 2px;";
-                } else if (p.label === "UL") {
-                    badge.style.cssText = "font-size:14px; color:#1976D2; font-weight:900; padding:0 2px;";
-                } else {
-                    badge.style.cssText = "font-size:12px; color:#444; font-weight:bold; padding:0 2px;";
+                // 1. Set Text (Label Only)
+                badge.innerText = p.label;
+
+                // 2. Set Tooltip (Label + Degree)
+                badge.title = `${p.label} at ${p.degree}`;
+
+                // 3. Styling (Larger Fonts)
+                let color = "#333";
+                let fontWeight = "bold";
+                let fontSize = "12px"; // Default size increased from 10px
+                
+                if (p.label === "AL") { 
+                    color = "#D32F2F"; 
+                    fontWeight = "900"; 
+                    fontSize = "14px"; // Larger for AL
                 }
+                else if (p.label === "UL") { 
+                    color = "#1976D2"; 
+                    fontWeight = "900"; 
+                    fontSize = "14px"; // Larger for UL
+                }
+
+                badge.style.cssText = `font-size:${fontSize}; color:${color}; font-weight:${fontWeight}; cursor:help; padding:0 2px;`;
                 
                 container.appendChild(badge);
             }
         });
     }
 
-    // 5. Render Table (Added Degree Column)
-    function renderPadaTable(data) {
-        let container = document.getElementById("padasContainer");
-        
-        if (!container) {
-            container = document.createElement("div");
-            container.id = "padasContainer";
-            document.body.appendChild(container);
-            
-            Object.assign(container.style, {
-                position: "fixed", top: "15%", right: "20px",
-                width: "380px", // Widened for Degree column
-                backgroundColor: "#fff",
-                border: "1px solid #ccc", borderRadius: "8px",
-                boxShadow: "0 10px 30px rgba(0,0,0,0.3)", zIndex: "10001",
-                display: "flex", flexDirection: "column"
-            });
-        } else {
-            container.style.display = "flex";
-        }
-
-        // Tamil Maps
-        const signTamilMap = {
-            "Mesham": "மேஷம்", "Rishabam": "ரிஷபம்", "Mithunam": "மிதுனம்", "Kadagam": "கடகம்",
-            "Simmam": "சிம்மம்", "Kanni": "கன்னி", "Thulaam": "துலாம்", "Vrischikam": "விருச்சிகம்",
-            "Dhanusu": "தனுசு", "Makaram": "மகரம்", "Kumbam": "கும்பம்", "Meenam": "மீனம்"
-        };
-        const planetTamilMap = { 
-            "Sun": "சூரியன்", "Moon": "சந்திரன்", "Mars": "செவ்வாய்", 
-            "Mercury": "புதன்", "Jupiter": "குரு", "Venus": "சுக்கிரன்", 
-            "Saturn": "சனி", "Rahu": "ராகு", "Ketu": "கேது" 
-        };
-
-        const html = `
-        <div id="padasHeader" style="padding:12px; background:#009688; color:#fff; font-weight:bold; border-radius:8px 8px 0 0; cursor:move; display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:15px;">🔮 ஜைமினி ஆருட பாதங்கள்</span>
-            <span id="closePadasBtn" style="cursor:pointer; font-size:20px;">&times;</span>
-        </div>
-        <div style="padding:0; overflow:auto; max-height:450px;">
-            <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:center;">
-                <tr style="background:#f5f5f5; height:35px; border-bottom:1px solid #ddd; font-weight:bold;">
-                    <th>பதம்</th>
-                    <th>பாகை</th>
-                    <th>ராசி</th>
-                    <th>அதிபதி</th>
-                </tr>
-                ${data.map(r => `
-                    <tr style="border-bottom:1px solid #eee; height:30px;">
-                        <td style="font-weight:bold; color:${r.label==='AL'?'#E91E63':(r.label==='UL'?'#2196F3':'#333')}">
-                            ${r.label}
-                        </td>
-                        <td style="font-family:monospace; font-weight:bold; color:#555;">
-                            ${r.degree}
-                        </td>
-                        <td>${signTamilMap[r.sign_name] || r.sign_name}</td>
-                        <td style="font-weight:bold;">${planetTamilMap[r.lord] || r.lord}</td>
-                    </tr>
-                `).join('')}
-            </table>
-        </div>`;
-
-        container.innerHTML = html;
-        
-        document.getElementById("closePadasBtn").onclick = () => {
-            togglePadas();
-        };
-
-        makeDraggable(container, document.getElementById("padasHeader"));
-    }
-
-    function makeDraggable(elmnt, header) {
-        let pos1=0, pos2=0, pos3=0, pos4=0;
-        header.onmousedown = dragMouseDown;
-        function dragMouseDown(e) {
-            e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY;
-            document.onmouseup = closeDragElement; document.onmousemove = elementDrag;
-        }
-        function elementDrag(e) {
-            e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY;
-            pos3 = e.clientX; pos4 = e.clientY;
-            elmnt.style.top = (elmnt.offsetTop - pos2) + "px"; elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-        }
-        function closeDragElement() { document.onmouseup = null; document.onmousemove = null; }
-    }
 })();
