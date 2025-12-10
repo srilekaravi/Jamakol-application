@@ -318,6 +318,86 @@
     font-family: "Poppins", "Segoe UI", sans-serif;
 }
 
+        /* -------------------------------------------------- */
+/* BASE / DESKTOP CHART LAYOUT */
+/* -------------------------------------------------- */
+#container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Base side panel width for desktop */
+#transitPanel, 
+#tableWrapContainer, 
+#dashaOuter {
+    /* Adjust these percentages as needed for your desired desktop layout */
+    width: 20%; 
+    flex-shrink: 0;
+}
+
+.chart-wrapper {
+    /* Adjust this percentage as needed for your desired desktop layout */
+    width: 40%; 
+    flex-shrink: 0;
+}
+
+/* -------------------------------------------------- */
+/* MOBILE VIEW ONLY: Screens smaller than 768px */
+/* This section handles the request to move tables below the chart */
+/* -------------------------------------------------- */
+@media (max-width: 768px) {
+    
+    /* 1. Change main container to stack items vertically */
+    #container {
+        flex-direction: column;
+        align-items: center; /* Center items in the stack */
+        gap: 0; 
+        padding: 0 10px; 
+    }
+
+    /* 2. Make the Chart full width and display first */
+    .chart-wrapper {
+        width: 100%; /* Full width */
+        order: -1; /* Puts the chart first on mobile */
+        margin-bottom: 20px; 
+    }
+    
+    /* 3. Make Tables (tableWrapContainer) and Dasha full width */
+    #tableWrapContainer,
+    #dashaOuter {
+        width: 100%; /* Full width */
+        padding: 10px 0; 
+    }
+
+    /* 4. Force Panchangam to display in mobile view */
+    #panchangamWrap {
+        display: block !important; /* Overrides the inline style="display:none;" */
+        padding: 20px 0;
+    }
+    
+    /* 5. Fix for the dropdown to be full width */
+    #chartType2 {
+        width: 100%;
+        padding: 10px;
+    }
+
+    /* 6. Center the mobile dropdown wrapper */
+    center {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    /* 7. Ensure tables can scroll horizontally on small screens */
+    #tableWrap {
+        overflow-x: auto; 
+        margin-bottom: 20px;
+    }
+}
+
 
         /* --- MOBILE & TABLET ADAPTATIONS --- */
 
@@ -446,6 +526,7 @@
                 padding: 15px;
             }
         }
+        
     </style>
 </head>
 <body>
@@ -1095,6 +1176,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
