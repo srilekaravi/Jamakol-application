@@ -317,9 +317,8 @@
     text-transform: uppercase;
     font-family: "Poppins", "Segoe UI", sans-serif;
 }
-
-        /* -------------------------------------------------- */
-/* BASE / DESKTOP CHART LAYOUT */
+/* -------------------------------------------------- */
+/* BASE / DESKTOP CHART LAYOUT (Desktop Default) */
 /* -------------------------------------------------- */
 #container {
     display: flex;
@@ -330,74 +329,90 @@
     margin: 0 auto;
 }
 
-/* Base side panel width for desktop */
+/* Side panel widths for desktop */
 #transitPanel, 
 #tableWrapContainer, 
 #dashaOuter {
-    /* Adjust these percentages as needed for your desired desktop layout */
     width: 20%; 
     flex-shrink: 0;
 }
 
 .chart-wrapper {
-    /* Adjust this percentage as needed for your desired desktop layout */
     width: 40%; 
     flex-shrink: 0;
 }
 
+/* Hide Panchangam on Desktop (Default view) */
+#panchangamWrap {
+    display: none !important; 
+}
+
+/* Ensure the center tag is not forced to full width on desktop */
+center {
+    display: block; 
+    padding: 10px 0;
+}
+
 /* -------------------------------------------------- */
 /* MOBILE VIEW ONLY: Screens smaller than 768px */
-/* This section handles the request to move tables below the chart */
+/* (Chart first, then Dropdown, then Tables/Dasha) */
 /* -------------------------------------------------- */
 @media (max-width: 768px) {
     
-    /* 1. Change main container to stack items vertically */
+    /* 1. Stack the main container items vertically */
     #container {
         flex-direction: column;
-        align-items: center; /* Center items in the stack */
+        align-items: center; 
         gap: 0; 
         padding: 0 10px; 
     }
 
-    /* 2. Make the Chart full width and display first */
+    /* 2. Chart Display & Order (Chart must appear first on mobile) */
     .chart-wrapper {
-        width: 100%; /* Full width */
-        order: -1; /* Puts the chart first on mobile */
+        width: 100%; 
+        order: -2; /* Puts the chart after the dropdown in the visual flow */
         margin-bottom: 20px; 
     }
     
-    /* 3. Make Tables (tableWrapContainer) and Dasha full width */
-    #tableWrapContainer,
-    #dashaOuter {
-        width: 100%; /* Full width */
-        padding: 10px 0; 
-    }
-
-    /* 4. Force Panchangam to display in mobile view */
+    /* 3. Panchangam Display & Order (Appears before dropdown) */
     #panchangamWrap {
-        display: block !important; /* Overrides the inline style="display:none;" */
-        padding: 20px 0;
-    }
-    
-    /* 5. Fix for the dropdown to be full width */
-    #chartType2 {
+        display: block !important; /* Force display in mobile view */
         width: 100%;
-        padding: 10px;
+        padding: 20px 10px; 
+        box-sizing: border-box; 
+        order: -4; /* Ensures it is first in the sequence */
     }
 
-    /* 6. Center the mobile dropdown wrapper */
+    /* 4. Dropdown Styling & Order */
     center {
         width: 100%;
         padding: 10px;
+        order: -3; /* Ensures dropdown is second, after Panchangam */
+        margin: 0 auto;
     }
     
-    /* 7. Ensure tables can scroll horizontally on small screens */
+    #chartType2 {
+        width: 60%; /* Reduced size (e.g., 60%) */
+        display: block; 
+        margin: 0 auto; /* Centers the dropdown block */
+        padding: 10px;
+        box-sizing: border-box;
+    }
+    
+    /* 5. Tables (tableWrapContainer) and Dasha full width, appear below chart/dropdown */
+    #tableWrapContainer,
+    #dashaOuter {
+        width: 100%; 
+        padding: 10px 0; 
+        order: 1; /* Pushes them down below the negative-ordered items */
+    }
+
+    /* Ensure tables can scroll horizontally on small screens */
     #tableWrap {
         overflow-x: auto; 
         margin-bottom: 20px;
     }
 }
-
 
         /* --- MOBILE & TABLET ADAPTATIONS --- */
 
@@ -1176,6 +1191,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
