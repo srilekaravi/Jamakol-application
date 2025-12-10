@@ -364,14 +364,7 @@ center {
         padding: 0 10px; 
     }
 
-    /* 2. Chart Display & Order (Chart must appear first on mobile) */
-    .chart-wrapper {
-        width: 100%; 
-        order: -2; /* Puts the chart after the dropdown in the visual flow */
-        margin-bottom: 20px; 
-    }
-    
-    /* 3. Panchangam Display & Order (Appears before dropdown) */
+      /* 2. Panchangam Display & Order (Appears before dropdown) */
     #panchangamWrap {
         display: block !important; /* Force display in mobile view */
         width: 100%;
@@ -380,6 +373,13 @@ center {
         order: -4; /* Ensures it is first in the sequence */
     }
 
+    /* 3. Chart Display & Order (Chart must appear first on mobile) */
+    .chart-wrapper {
+        width: 100%; 
+        order: -2; /* Puts the chart after the dropdown in the visual flow */
+        margin-bottom: 20px; 
+    }
+    
     /* 4. Dropdown Styling & Order */
     center {
         width: 100%;
@@ -1188,6 +1188,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
