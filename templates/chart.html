@@ -353,80 +353,75 @@ center {
 /* MOBILE VIEW ONLY: Screens smaller than 768px */
 /* ORDER: 1. Panchangam, 2. Dropdown, 3. Chart, 4. Tables, 5. Dasha */
 /* -------------------------------------------------- */
+/* -------------------------------------------------- */
+/* MOBILE VIEW ONLY: Screens smaller than 768px */
+/* (Panchangam first, then Dropdown, then Chart, then Tables, then Dasha) */
+/* -------------------------------------------------- */
 @media (max-width: 768px) {
     
-    /* 1. Stack the main container items vertically */
+    /* 1. Stack the main container items vertically and remove internal gap */
     #container {
         flex-direction: column;
         align-items: center; 
-        /* Remove vertical gap between container items */
-        gap: 0; 
+        gap: 0 !important; /* Remove gap between stacked items */
         padding: 0 10px; 
-        /* Important: Ensure #container itself participates in ordering if other elements are outside */
-        order: 3; /* Puts the chart/tables/dasha bundle after Panchangam and Dropdown */
     }
 
-    /* 2. Panchangam Display & Order (FIRST) */
-    /* Since Panchangam is outside #container, we give it the lowest order */
+    /* 2. Panchangam Display & Order (Must be FIRST) */
     #panchangamWrap {
-        display: block !important; /* Force display in mobile view */
+        display: block !important; 
         width: 100%;
-        padding: 20px 10px 0; /* Reduced bottom padding */
+        padding: 10px 0; /* Reduced vertical padding */
         box-sizing: border-box; 
-        order: 1; /* Assign the first order */
-        margin: 0; /* Remove default margin */
+        order: -4; /* Ensures it is the 1st item */
+        margin: 0; /* Ensure no external margins */
     }
 
-    /* 3. Dropdown Styling & Order (SECOND) */
-    /* Center tag wraps the dropdown */
+    /* 3. Dropdown Styling & Order (Must be SECOND) */
     center {
         width: 100%;
-        padding: 10px 10px 0; /* Reduced bottom padding */
-        order: 2; /* Assign the second order */
-        margin: 0; /* Remove default margin */
+        padding: 10px 0; /* Reduced vertical padding */
+        order: -3; /* Ensures dropdown is 2nd item */
+        margin: 0 auto; /* Ensure no external margins */
     }
     
     #chartType2 {
-        width: 60%; /* Reduced size */
+        width: 60%; 
         display: block; 
         margin: 0 auto; /* Centers the dropdown block */
         padding: 10px;
         box-sizing: border-box;
     }
-
-    /* 4. Chart Display & Order (THIRD) */
-    /* The chart is inside #container, but it needs to appear first inside the container stack */
+    
+    /* 4. Chart Display & Order (Must be THIRD) */
     .chart-wrapper {
         width: 100%; 
-        order: -1; /* Puts the chart FIRST inside the #container */
-        margin-bottom: 0; /* Remove spacing between chart and tables */
+        order: -2; /* Ensures the chart is the 3rd item */
+        margin-bottom: 0 !important; /* Remove gap after chart */
+        padding: 10px 0; /* Minimal padding for spacing if needed */
     }
     
-    /* 5. Tables and Dasha (FOURTH & FIFTH) */
-    /* They are inside #container and will take their natural order after the chart (order:-1) */
-    #tableWrapContainer,
+    /* 5. Tables (tableWrapContainer) and Dasha full width, appear below chart/dropdown */
+    /* Tables (Must be FOURTH) */
+    #tableWrapContainer {
+        width: 100%; 
+        padding: 10px 0; /* Minimal padding */
+        order: -1; /* Ensures tables are the 4th item */
+        margin-bottom: 0 !important; /* Remove gap after tables */
+    }
+
+    /* Dasha (Must be FIFTH/LAST) */
     #dashaOuter {
         width: 100%; 
-        padding: 10px 0; 
-        order: 1; /* Pushes them below the chart's order: -1 */
-        margin: 0; /* Remove extra space */
+        padding: 10px 0; /* Minimal padding */
+        order: 0; /* Ensures Dasha is the 5th/Last item in this group */
+        margin: 0 !important; /* Ensure no external margins */
     }
-    
+
     /* Ensure tables can scroll horizontally on small screens */
     #tableWrap {
         overflow-x: auto; 
-        margin-bottom: 0; /* Remove bottom margin */
-    }
-
-    /* Remove extra space around info boxes */
-    .info-box {
-        margin: 0;
-        padding: 15px 10px;
-    }
-    
-    .panel-header {
-        margin-top: 0;
-        margin-bottom: 10px;
+        margin-bottom: 0 !important; /* Remove internal table gap */
     }
 }
         /* --- MOBILE & TABLET ADAPTATIONS --- */
@@ -1206,6 +1201,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
