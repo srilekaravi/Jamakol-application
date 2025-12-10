@@ -349,71 +349,75 @@ center {
     display: block; 
     padding: 10px 0;
 }
+/* -------------------------------------------------- */
+/* MOBILE VIEW ONLY: Screens smaller than 768px */
+/* (Dropdown, then Panchangam, then Chart, then Tables, then Dasha) */
+/* -------------------------------------------------- */
 @media (max-width: 768px) {
-
+    
+    /* 1. Stack the main container items vertically and remove internal gap */
     #container {
-        display: flex;
         flex-direction: column;
-        align-items: center;
-        gap: 0 !important;
-        padding: 0 10px;
+        align-items: center; 
+        gap: 0 !important; /* Remove gap between stacked items */
+        padding: 0 10px; 
     }
 
-    /* 1️⃣ FORM BAR – FIRST */
-    #formBar {
-        width: 100%;
-        order: -5;
-        margin: 0;
-        padding: 10px 0;
-    }
-
-    /* 2️⃣ PANCHANGAM – SECOND (form bar ku KEEZHA) */
-    #panchangamWrap {
-        width: 100%;
-        display: block !important;
-        order: -4;
-        padding: 10px 0;
-        margin: 0;
-    }
-
-    /* 3️⃣ DROPDOWN – THIRD */
+    /* 2. Dropdown Styling & Order (Must be FIRST - Before Panchangam) */
     center {
         width: 100%;
-        order: -3;
-        padding: 10px 0;
-        margin: 0 auto;
+        padding: 10px 0; /* Reduced vertical padding */
+        order: -4; /* Ensures dropdown is 1st item */
+        margin: 0 auto; /* Ensure no external margins */
     }
-
+    
     #chartType2 {
-        width: 60%;
-        display: block;
-        margin: 0 auto;
+        width: 60%; 
+        display: block; 
+        margin: 0 auto; /* Centers the dropdown block */
         padding: 10px;
+        box-sizing: border-box;
     }
 
-    /* 4️⃣ CHART */
+    /* 3. Panchangam Display & Order (Must be SECOND - After Dropdown) */
+    #panchangamWrap {
+        display: block !important; 
+        width: 100%;
+        padding: 10px 0; /* Reduced vertical padding */
+        box-sizing: border-box; 
+        order: -3; /* Ensures it is the 2nd item (below the dropdown) */
+        margin: 0; /* Ensure no external margins */
+    }
+    
+    /* 4. Chart Display & Order (Must be THIRD) */
     .chart-wrapper {
-        width: 100%;
-        order: -2;
-        padding: 10px 0;
+        width: 100%; 
+        order: -2; /* Ensures the chart is the 3rd item */
+        margin-bottom: 0 !important; /* Remove gap after chart */
+        padding: 10px 0; /* Minimal padding for spacing if needed */
     }
-
-    /* 5️⃣ TABLES */
+    
+    /* 5. Tables (tableWrapContainer) and Dasha full width, appear below chart/dropdown */
+    /* Tables (Must be FOURTH) */
     #tableWrapContainer {
-        width: 100%;
-        order: -1;
-        padding: 10px 0;
+        width: 100%; 
+        padding: 10px 0; /* Minimal padding */
+        order: -1; /* Ensures tables are the 4th item */
+        margin-bottom: 0 !important; /* Remove gap after tables */
     }
 
-    #tableWrap {
-        overflow-x: auto;
-    }
-
-    /* 6️⃣ DASHA – LAST */
+    /* Dasha (Must be FIFTH/LAST) */
     #dashaOuter {
-        width: 100%;
-        order: 0;
-        padding: 10px 0;
+        width: 100%; 
+        padding: 10px 0; /* Minimal padding */
+        order: 0; /* Ensures Dasha is the 5th/Last item in this group */
+        margin: 0 !important; /* Ensure no external margins */
+    }
+
+    /* Ensure tables can scroll horizontally on small screens */
+    #tableWrap {
+        overflow-x: auto; 
+        margin-bottom: 0 !important; /* Remove internal table gap */
     }
 }
 
@@ -1194,6 +1198,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
