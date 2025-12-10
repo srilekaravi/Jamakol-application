@@ -349,10 +349,9 @@ center {
     display: block; 
     padding: 10px 0;
 }
-
 /* -------------------------------------------------- */
 /* MOBILE VIEW ONLY: Screens smaller than 768px */
-/* (Chart first, then Dropdown, then Tables/Dasha) */
+/* ORDER: 1. Panchangam, 2. Dropdown, 3. Chart, 4. Tables, 5. Dasha */
 /* -------------------------------------------------- */
 @media (max-width: 768px) {
     
@@ -360,57 +359,76 @@ center {
     #container {
         flex-direction: column;
         align-items: center; 
+        /* Remove vertical gap between container items */
         gap: 0; 
         padding: 0 10px; 
+        /* Important: Ensure #container itself participates in ordering if other elements are outside */
+        order: 3; /* Puts the chart/tables/dasha bundle after Panchangam and Dropdown */
     }
 
-      /* 2. Panchangam Display & Order (Appears before dropdown) */
+    /* 2. Panchangam Display & Order (FIRST) */
+    /* Since Panchangam is outside #container, we give it the lowest order */
     #panchangamWrap {
         display: block !important; /* Force display in mobile view */
         width: 100%;
-        padding: 20px 10px; 
+        padding: 20px 10px 0; /* Reduced bottom padding */
         box-sizing: border-box; 
-        order: -4; /* Ensures it is first in the sequence */
+        order: 1; /* Assign the first order */
+        margin: 0; /* Remove default margin */
     }
 
-    /* 3. Chart Display & Order (Chart must appear first on mobile) */
-    .chart-wrapper {
-        width: 100%; 
-        order: -2; /* Puts the chart after the dropdown in the visual flow */
-        margin-bottom: 20px; 
-    }
-    
-    /* 4. Dropdown Styling & Order */
+    /* 3. Dropdown Styling & Order (SECOND) */
+    /* Center tag wraps the dropdown */
     center {
         width: 100%;
-        padding: 10px;
-        order: -3; /* Ensures dropdown is second, after Panchangam */
-        margin: 0 auto;
+        padding: 10px 10px 0; /* Reduced bottom padding */
+        order: 2; /* Assign the second order */
+        margin: 0; /* Remove default margin */
     }
     
     #chartType2 {
-        width: 60%; /* Reduced size (e.g., 60%) */
+        width: 60%; /* Reduced size */
         display: block; 
         margin: 0 auto; /* Centers the dropdown block */
         padding: 10px;
         box-sizing: border-box;
     }
+
+    /* 4. Chart Display & Order (THIRD) */
+    /* The chart is inside #container, but it needs to appear first inside the container stack */
+    .chart-wrapper {
+        width: 100%; 
+        order: -1; /* Puts the chart FIRST inside the #container */
+        margin-bottom: 0; /* Remove spacing between chart and tables */
+    }
     
-    /* 5. Tables (tableWrapContainer) and Dasha full width, appear below chart/dropdown */
+    /* 5. Tables and Dasha (FOURTH & FIFTH) */
+    /* They are inside #container and will take their natural order after the chart (order:-1) */
     #tableWrapContainer,
     #dashaOuter {
         width: 100%; 
         padding: 10px 0; 
-        order: 1; /* Pushes them down below the negative-ordered items */
+        order: 1; /* Pushes them below the chart's order: -1 */
+        margin: 0; /* Remove extra space */
     }
-
+    
     /* Ensure tables can scroll horizontally on small screens */
     #tableWrap {
         overflow-x: auto; 
-        margin-bottom: 20px;
+        margin-bottom: 0; /* Remove bottom margin */
+    }
+
+    /* Remove extra space around info boxes */
+    .info-box {
+        margin: 0;
+        padding: 15px 10px;
+    }
+    
+    .panel-header {
+        margin-top: 0;
+        margin-bottom: 10px;
     }
 }
-
         /* --- MOBILE & TABLET ADAPTATIONS --- */
 
         /* Tablet/Small Laptop (Max width 1024px) */
@@ -1188,6 +1206,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
