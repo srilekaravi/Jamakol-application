@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="ta">
 <head>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&display=swap" rel="stylesheet">
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
@@ -28,31 +26,6 @@
             margin-bottom: 15px;
             font-size: 1.5rem;
         }
-.site-header {
-    display: flex;
-    flex-direction: column;      /* ✅ logo மேல, title கீழ */
-    align-items: center;         /* ✅ horizontal center */
-    justify-content: center;     /* ✅ vertical center */
-    text-align: center;
-    padding: 15px;
-}
-
-/* Logo */
-.logo {
-    height: 70px;                /* desktop size */
-    width: auto;
-    margin-bottom: 6px;
-}
-
-/* Title */
-.site-title {
-    font-family: 'Cinzel', serif;   /* ✅ new font */
-    color: darkgreen;
-    font-size: 32px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    white-space: nowrap;
-}
 
         /* --- FORM BAR (RESPONSIVE) --- */
         #formbar {
@@ -151,18 +124,53 @@
             margin: 0 auto;
         }
 
+            #chart > div {
+                overflow: visible !important;
+                position: relative;
+            }
+
+        .rasi-cell {
+            width: 100%;
+            height: 100%;
+            overflow: visible !important;
+            display: flex;
+        }
+
         .chart-box {
             border: 1px solid #000;
             padding: 2px;
             text-align: center;
-            font-size: clamp(10px, 2.5vw, 14px); /* Dynamic font size */
+            font-size: clamp(10px, 2.5vw, 14px);
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            overflow: hidden;
-            word-wrap: break-word;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
         }
+
+        .planet-item {
+            width: 100%;
+            text-align: center;
+            padding: 2px 0;
+        }
+
+
+        /* Responsive Text */
+        .chart-box span {
+            font-size: clamp(10px, 2.2vw, 13px);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .chart-box small {
+            font-size: 0.85em;
+            color: #444;
+            font-weight: normal;
+        }
+
 
             .chart-box span {
                 display: block;
@@ -301,125 +309,78 @@
             .modal-content.wide {
                 max-width: 900px;
             }
-        .main-header {
-    background: #ffffff;
-    padding: 16px 24px;
-    text-align: center;
-    border-bottom: 2px solid #0b5c2d;
-}
 
-.logo-title {
-    margin: 0;
-    font-size: 34px;          /* increased size */
-    font-weight: 700;
-    color: #0b5c2d;            /* dark green */
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    font-family: "Poppins", "Segoe UI", sans-serif;
-}
-/* -------------------------------------------------- */
-/* BASE / DESKTOP CHART LAYOUT (Desktop Default) */
-/* -------------------------------------------------- */
-#container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 20px;
-    max-width: 1400px;
-    margin: 0 auto;
-}
+        /* -------------------------------------------------- */
+        /* MOBILE VIEW ONLY: Screens smaller than 768px */
+        /* (Dropdown/Controls, then Panchangam, then Chart, then Tables, then Dasha) */
+        /* -------------------------------------------------- */
+        @media (max-width: 768px) {
 
-/* Side panel widths for desktop */
-#transitPanel, 
-#tableWrapContainer, 
-#dashaOuter {
-    width: 20%; 
-    flex-shrink: 0;
-}
+            /* 1. Stack the main container items vertically and remove internal gap */
+            #container {
+                flex-direction: column;
+                align-items: center;
+                gap: 0 !important; /* Remove gap between stacked items */
+                padding: 0 10px;
+            }
 
-.chart-wrapper {
-    width: 40%; 
-    flex-shrink: 0;
-}
+            /* 2. Dropdown Styling & Order (Must be FIRST - Assumed "formbar" equivalent) */
+            center {
+                width: 100%;
+                padding: 10px 0;
+                order: -4; /* Ensures dropdown is 1st item */
+                margin: 0 auto;
+            }
 
+            #chartType2 {
+                width: 60%;
+                display: block;
+                margin: 0 auto;
+                padding: 10px;
+                box-sizing: border-box;
+            }
 
+            /* 3. Panchangam Display & Order (Must be SECOND - Below Dropdown/Controls) */
+            #panchangamWrap {
+                display: block !important;
+                width: 100%;
+                padding: 10px 0;
+                box-sizing: border-box;
+                order: -3; /* Ensures it is the 2nd item (below the controls) */
+                margin: 0;
+            }
 
-/* Ensure the center tag is not forced to full width on desktop */
-center {
-    display: block; 
-    padding: 10px 0;
-}
-/* -------------------------------------------------- */
-/* MOBILE VIEW ONLY: Screens smaller than 768px */
-/* (Dropdown/Controls, then Panchangam, then Chart, then Tables, then Dasha) */
-/* -------------------------------------------------- */
-@media (max-width: 768px) {
-    
-    /* 1. Stack the main container items vertically and remove internal gap */
-    #container {
-        flex-direction: column;
-        align-items: center; 
-        gap: 0 !important; /* Remove gap between stacked items */
-        padding: 0 10px; 
-    }
+            /* 4. Chart Display & Order (Must be THIRD) */
+            .chart-wrapper {
+                width: 100%;
+                order: -2; /* Ensures the chart is the 3rd item */
+                margin-bottom: 0 !important; /* Remove gap after chart */
+                padding: 10px 0;
+            }
 
-    /* 2. Dropdown Styling & Order (Must be FIRST - Assumed "formbar" equivalent) */
-    center {
-        width: 100%;
-        padding: 10px 0; 
-        order: -4; /* Ensures dropdown is 1st item */
-        margin: 0 auto; 
-    }
-    
-    #chartType2 {
-        width: 60%; 
-        display: block; 
-        margin: 0 auto; 
-        padding: 10px;
-        box-sizing: border-box;
-    }
+            /* 5. Tables (tableWrapContainer) and Dasha full width, appear below chart/dropdown */
+            /* Tables (Must be FOURTH) */
+            #tableWrapContainer {
+                width: 100%;
+                padding: 10px 0;
+                order: -1; /* Ensures tables are the 4th item */
+                margin-bottom: 0 !important;
+            }
 
-    /* 3. Panchangam Display & Order (Must be SECOND - Below Dropdown/Controls) */
-    #panchangamWrap {
-        display: block !important; 
-        width: 100%;
-        padding: 10px 0; 
-        box-sizing: border-box; 
-        order: -3; /* Ensures it is the 2nd item (below the controls) */
-        margin: 0; 
-    }
-    
-    /* 4. Chart Display & Order (Must be THIRD) */
-    .chart-wrapper {
-        width: 100%; 
-        order: -2; /* Ensures the chart is the 3rd item */
-        margin-bottom: 0 !important; /* Remove gap after chart */
-        padding: 10px 0; 
-    }
-    
-    /* 5. Tables (tableWrapContainer) and Dasha full width, appear below chart/dropdown */
-    /* Tables (Must be FOURTH) */
-    #tableWrapContainer {
-        width: 100%; 
-        padding: 10px 0; 
-        order: -1; /* Ensures tables are the 4th item */
-        margin-bottom: 0 !important; 
-    }
+            /* Dasha (Must be FIFTH/LAST) */
+            #dashaOuter {
+                width: 100%;
+                padding: 10px 0;
+                order: 0; /* Ensures Dasha is the 5th/Last item in this group */
+                margin: 0 !important;
+            }
 
-    /* Dasha (Must be FIFTH/LAST) */
-    #dashaOuter {
-        width: 100%; 
-        padding: 10px 0; 
-        order: 0; /* Ensures Dasha is the 5th/Last item in this group */
-        margin: 0 !important; 
-    }
-
-    /* Ensure tables can scroll horizontally on small screens */
-    #tableWrap {
-        overflow-x: auto; 
-        margin-bottom: 0 !important; 
-    }
-}
+            /* Ensure tables can scroll horizontally on small screens */
+            #tableWrap {
+                overflow-x: auto;
+                margin-bottom: 0 !important;
+            }
+        }
 
         /* --- MOBILE & TABLET ADAPTATIONS --- */
 
@@ -428,17 +389,6 @@ center {
             #container {
                 gap: 15px;
             }
-  @media (max-width: 600px) {
-    .logo {
-        height: 50px;            /* mobile logo size */
-    }
-
-    .site-title {
-        font-size: 20px;         /* mobile title size */
-    }
-}
-
-
 
             .side-panel {
                 min-width: 100%; /* Stack fully on smaller tablets */
@@ -460,19 +410,6 @@ center {
                 font-size: 1.2rem;
                 margin-bottom: 10px;
             }
-            @media (max-width: 600px) {
-    .logo-title {
-        font-size: 24px;
-        letter-spacing: 1px;
-    }
-}
-@media (max-width: 600px) {
-    .site-title {
-        font-size: 20px;
-        letter-spacing: 1px;
-    }
-}
-
 
             /* Form Grid Layout for Mobile */
             #formbar {
@@ -548,24 +485,41 @@ center {
                 padding: 15px;
             }
         }
-        
+        /* === FIX FOR SCROLL CLIPPING IN RASI BOXES === */
+        .rasi-cell {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: visible !important; /* allow scroll box to fully show */
+            display: flex;
+        }
+
+            .rasi-cell .chart-box {
+                flex: 1;
+                overflow-y: auto !important; /* internal scroll */
+                overflow-x: hidden !important;
+                height: 100%;
+                max-height: 100%;
+            }
+
+
     </style>
 </head>
 <body>
-    <center>
- <header class="site-header">
-    <img src="{{ url_for('static', filename='logo.png') }}" class="logo" alt="logo">
-    <span class="site-title">SMV ASTRO RESEARCH</span>
-</header>
-    </center>
+
+    <h2>SMV ASTRO RESEARCH</h2>
+
+
     <div id="formbar">
         <input id="name" list="nameList" placeholder="பெயர்">
         <datalist id="nameList"></datalist>
-<input id="date" type="date">
+
+        <input id="date" type="date">
         <div class="time-group">
             <input id="time" type="time" step="1">
+            <input id="seconds" type="number" min="0" max="59" value="0" placeholder="Sec">
         </div>
-        
+
         <input id="place" list="placesList" placeholder="Type City (e.g. Chennai)..." autocomplete="off">
         <datalist id="placesList"></datalist>
 
@@ -580,7 +534,7 @@ center {
             <option value="rasi">ராசி</option>
             <option value="bhava">Bhava Chart</option>
             <option value="d9">D9 - நவம்சம்</option>
-            
+
         </select>
 
         <select id="gender">
@@ -602,7 +556,7 @@ center {
 
         <button onclick="openAddPlace()">+ Add Place</button>
         <button onclick="saveChart()">💾 Save</button>
-        <button onclick="openSavedCharts()">📂 View Saved</button>
+        <button id="VIEW_SAVED_BTN">சேமிக்கப்பட்ட ஜாதகங்கள்</button>
         <button id="newChartBtn">➕ New Chart</button>
         <button id="toggleTransitBtn">🪐 கோட்சார கிரகநிலைகள்</button>
         <button id="clientNotesBtn">🗒 Client Notes</button>
@@ -617,24 +571,24 @@ center {
         </select>
     </center>
     <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const c1 = document.getElementById("chartType");      // main selector
-    const c2 = document.getElementById("chartType2");     // center selector
+        document.addEventListener("DOMContentLoaded", () => {
+            const c1 = document.getElementById("chartType");      // main selector
+            const c2 = document.getElementById("chartType2");     // center selector
 
-    if (!c1 || !c2) return;
+            if (!c1 || !c2) return;
 
-    // When main dropdown changes → update center one
-    c1.addEventListener("change", () => {
-        c2.value = c1.value;
-        generateChart();
-    });
+            // When main dropdown changes → update center one
+            c1.addEventListener("change", () => {
+                c2.value = c1.value;
+                generateChart();
+            });
 
-    // When center dropdown changes → update main one
-    c2.addEventListener("change", () => {
-        c1.value = c2.value;
-        generateChart();
-    });
-});
+            // When center dropdown changes → update main one
+            c2.addEventListener("change", () => {
+                c1.value = c2.value;
+                generateChart();
+            });
+        });
     </script>
 
     <div id="container">
@@ -708,11 +662,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     <script>
         const DEFAULT_PLACE = { city: "Chennai", lat: 13.0827, lon: 80.2707, tz: 5.5 };
+        // 1. UPDATE COLORS TO MATCH YOUR IMAGE
         const planetColors = {
-            "சூரியன்": "#e67e22", "சந்திரன்": "#3498db", "செவ்வாய்": "#ff4d4d",
-            "புதன்": "#27ae60", "குரு": "#f1c40f", "சுக்கிரன்": "#f78fb3",
-            "சனி": "#2c3e50", "ராகு": "#8e44ad", "கேது": "#95a5a6",
-            "மாந்தி": "#34495e", "லக்னம்": "#ff7f00"
+            "சூரியன்": "#E65100",  // Dark Orange (Sun)
+            "சந்திரன்": "#1E88E5", // Blue (Moon)
+            "செவ்வாய்": "#D32F2F", // Red (Mars)
+            "புதன்": "#2E7D32",    // Green (Mercury)
+            "குரு": "#F9A825",     // Yellow/Gold (Jupiter)
+            "சுக்கிரன்": "#E91E63", // Pink (Venus)
+            "சனி": "#1565C0",      // Dark Blue (Saturn)
+            "ராகு": "#424242",     // Dark Grey (Rahu)
+            "கேது": "#616161",     // Grey (Ketu)
+            "மாந்தி": "#000000",   // Black
+            "லக்னம்": "#C2185B"    // Special Color for Lagna
         };
 
         async function loadPlaces() {
@@ -827,17 +789,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 })
-                .then(r => r.json())
-                .then(res => {
-                    if (res.status === "ok") {
-                        if (typeof renderBhavaChart === "function") {
-                            renderBhavaChart(res);
-                        } else {
-                            console.error("renderBhavaChart not found!");
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === "ok") {
+                            if (typeof renderBhavaChart === "function") {
+                                renderBhavaChart(res);
+                            } else {
+                                console.error("renderBhavaChart not found!");
+                            }
+                            document.getElementById("tableWrap").innerHTML = "<h4>Bhava Chart</h4>";
                         }
-                        document.getElementById("tableWrap").innerHTML = "<h4>Bhava Chart</h4>";
-                    }
-                });
+                    });
                 return;
             }
 
@@ -860,11 +822,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         }
+        // Rendering south indian rasi chart
 
         function renderChart(rows) {
             const tamilRasis = ["மேஷம்", "ரிஷபம்", "மிதுனம்", "கடகம்", "சிம்மம்", "கன்னி",
                 "துலாம்", "விருச்சிகம்", "தனுசு", "மகரம்", "கும்பம்", "மீனம்"];
-            const grid = {}; tamilRasis.forEach(r => grid[r] = []);
+            const grid = {};
+            tamilRasis.forEach(r => grid[r] = []);
             let lagnaRasi = null;
 
             rows.forEach(r => {
@@ -874,21 +838,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const color = planetColors[r.name] || "#000";
                 if (r.name === "லக்னம்") lagnaRasi = rasi;
-                const label = r.grid_label || `(${r.name})`;
+
+                const label = r.grid_label || r.name;
+
                 let shortDeg = "";
                 if (r.dms) {
                     let match = r.dms.match(/(\d+)[°:] ?(\d+)/);
                     if (match) {
-                        const d = match[1];
-                        const m = match[2];
-                        shortDeg = `${d}°${m}'`;
-                    } else if (typeof r.dms === "string" && r.dms.trim() !== "") {
+                        shortDeg = `${match[1]}°${match[2]}'`;
+                    } else if (typeof r.dms === "string") {
                         shortDeg = r.dms.replace(/[^\d°′]/g, "").slice(0, 6);
                     }
                 }
 
                 grid[rasi].push(
-                    `<span style='color:${color};font-weight:bold;'>${label}</span>` +
+                    `<span style='color:${color};'>${label}</span>` +
                     (shortDeg ? `<small>${shortDeg}</small>` : "")
                 );
             });
@@ -901,10 +865,17 @@ document.addEventListener("DOMContentLoaded", () => {
             const chart = document.getElementById("chart");
             chart.innerHTML = "";
             order.forEach(r => {
-                if (r === null) chart.innerHTML += "<div></div>";
-                else {
+                if (r === null) {
+                    chart.innerHTML += "<div></div>";
+                } else {
                     const hl = (r === lagnaRasi);
-                    chart.innerHTML += `<div class='chart-box' style='background:${hl ? "#fff8e1" : "#fff"}; border-color:${hl ? "#ff9800" : "#000"};'>${grid[r].join("<br>")}</div>`;
+                    // The .rasi-cell wrapper is key for the sizing to work
+                    chart.innerHTML += `
+                    <div class="rasi-cell">
+                        <div class='chart-box' style='background:${hl ? "#fff8e1" : "#fff"}; border-color:${hl ? "#ff9800" : "#000"};'>
+                            ${grid[r].map(p => `<div class="planet-item">${p}</div>`).join("")}
+                        </div>
+                    </div>`;
                 }
             });
         }
@@ -938,24 +909,24 @@ document.addEventListener("DOMContentLoaded", () => {
                         return;
                     }
                     let html = `<table style="width:100%; border-collapse:collapse; min-width:400px;">
-                        <tr style="background:#f0f0f0; text-align:left;">
-                            <th style="padding:5px; border:1px solid #ccc;">ID</th>
-                            <th style="padding:5px; border:1px solid #ccc;">பெயர்</th>
-                            <th style="padding:5px; border:1px solid #ccc;">பிறந்த தேதி</th>
-                            <th style="padding:5px; border:1px solid #ccc;">குறிப்பு</th>
-                            <th style="padding:5px; border:1px solid #ccc;">செயல்கள்</th>
-                        </tr>`;
+                                <tr style="background:#f0f0f0; text-align:left;">
+                                    <th style="padding:5px; border:1px solid #ccc;">ID</th>
+                                    <th style="padding:5px; border:1px solid #ccc;">பெயர்</th>
+                                    <th style="padding:5px; border:1px solid #ccc;">பிறந்த தேதி</th>
+                                    <th style="padding:5px; border:1px solid #ccc;">குறிப்பு</th>
+                                    <th style="padding:5px; border:1px solid #ccc;">செயல்கள்</th>
+                                </tr>`;
                     list.forEach(r => {
                         html += `<tr>
-                            <td style="padding:5px; border:1px solid #ccc;">${r.id}</td>
-                            <td style="padding:5px; border:1px solid #ccc;">${r.name || ""}</td>
-                            <td style="padding:5px; border:1px solid #ccc;">${r.date || ""}</td>
-                            <td style="padding:5px; border:1px solid #ccc;">${r.comment || "-"}</td>
-                            <td style="padding:5px; border:1px solid #ccc;">
-                                <button onclick="loadSavedChart(${r.id})">📄 Load</button>
-                                <button onclick="deleteSavedChart(${r.id})">🗑️ Del</button>
-                            </td>
-                        </tr>`;
+                                    <td style="padding:5px; border:1px solid #ccc;">${r.id}</td>
+                                    <td style="padding:5px; border:1px solid #ccc;">${r.name || ""}</td>
+                                    <td style="padding:5px; border:1px solid #ccc;">${r.date || ""}</td>
+                                    <td style="padding:5px; border:1px solid #ccc;">${r.comment || "-"}</td>
+                                    <td style="padding:5px; border:1px solid #ccc;">
+                                        <button onclick="loadSavedChart(${r.id})">📄 Load</button>
+                                        <button onclick="deleteSavedChart(${r.id})">🗑️ Del</button>
+                                    </td>
+                                </tr>`;
                     });
                     html += "</table>";
                     document.getElementById("savedList").innerHTML = html;
@@ -977,7 +948,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     document.getElementById("name").value = chart.name || "";
                     document.getElementById("date").value = chart.date || "";
-                    document.getElementById("time").value = chart.time || "";
+                    // Fix invalid time formats
+                    if (chart.time && chart.time.includes(":")) {
+                        document.getElementById("time").value = chart.time.substring(0, 5);
+                    } else {
+                        document.getElementById("time").value = "00:00";
+                    }
+
                     if (chart.gender) document.getElementById("gender").value = chart.gender;
                     if (chart.tag) document.getElementById("tag").value = chart.tag;
                     if (chart.comment) document.getElementById("comment").value = chart.comment;
@@ -1050,18 +1027,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 })
-                .then(r => r.json())
-                .then(d => {
-                    if (d.status === "ok") {
-                        alert(currentEditingId ? "✅ Updated!" : "💾 Saved!");
-                        if (d.id) {
-                            currentEditingId = d.id;
-                            window.currentChartId = d.id;
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.status === "ok") {
+                            alert(currentEditingId ? "✅ Updated!" : "💾 Saved!");
+                            if (d.id) {
+                                currentEditingId = d.id;
+                                window.currentChartId = d.id;
+                            }
+                        } else {
+                            alert("❌ Save failed: " + d.message);
                         }
-                    } else {
-                        alert("❌ Save failed: " + d.message);
-                    }
-                });
+                    });
 
             } catch (e) {
                 console.error("Save error:", e);
@@ -1114,6 +1091,10 @@ document.addEventListener("DOMContentLoaded", () => {
     <script src="/static/js/karakas.js"></script>
     <script src="/static/js/comparison.js"></script>
     <script src="/static/js/all_divisions.js"></script>
+    <script src="/static/js/savedViewer.js"></script>
+
+
+
     <script>
         window.addEventListener('load', function () {
             const btn = document.getElementById('clientNotesBtn');
@@ -1127,109 +1108,110 @@ document.addEventListener("DOMContentLoaded", () => {
     </script>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        // Function to make an element draggable via Touch
-        function addTouchSupport(elmnt) {
-            var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            var header = elmnt.querySelector(".notepad-header") || elmnt.querySelector("h4") || elmnt;
+        document.addEventListener("DOMContentLoaded", function () {
+            // Function to make an element draggable via Touch
+            function addTouchSupport(elmnt) {
+                var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                var header = elmnt.querySelector(".notepad-header") || elmnt.querySelector("h4") || elmnt;
 
-            if(header) {
-                header.addEventListener("touchstart", dragTouchStart, {passive: false});
+                if (header) {
+                    header.addEventListener("touchstart", dragTouchStart, { passive: false });
+                }
+
+                function dragTouchStart(e) {
+                    var touch = e.touches[0];
+                    pos3 = touch.clientX;
+                    pos4 = touch.clientY;
+                    document.addEventListener("touchend", closeDragElement, { passive: false });
+                    document.addEventListener("touchmove", elementDrag, { passive: false });
+                }
+
+                function elementDrag(e) {
+                    var touch = e.touches[0];
+                    e.preventDefault();
+                    pos1 = pos3 - touch.clientX;
+                    pos2 = pos4 - touch.clientY;
+                    pos3 = touch.clientX;
+                    pos4 = touch.clientY;
+                    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+                    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+                }
+
+                function closeDragElement() {
+                    document.removeEventListener("touchend", closeDragElement);
+                    document.removeEventListener("touchmove", elementDrag);
+                }
             }
 
-            function dragTouchStart(e) {
-                var touch = e.touches[0];
-                pos3 = touch.clientX;
-                pos4 = touch.clientY;
-                document.addEventListener("touchend", closeDragElement, {passive: false});
-                document.addEventListener("touchmove", elementDrag, {passive: false});
-            }
+            var existingModals = document.querySelectorAll('.draggable-modal, [id$="Panel"], [id$="Notepad"]');
+            existingModals.forEach(m => addTouchSupport(m));
 
-            function elementDrag(e) {
-                var touch = e.touches[0];
-                e.preventDefault();
-                pos1 = pos3 - touch.clientX;
-                pos2 = pos4 - touch.clientY;
-                pos3 = touch.clientX;
-                pos4 = touch.clientY;
-                elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-                elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-            }
-
-            function closeDragElement() {
-                document.removeEventListener("touchend", closeDragElement);
-                document.removeEventListener("touchmove", elementDrag);
-            }
-        }
-
-        var existingModals = document.querySelectorAll('.draggable-modal, [id$="Panel"], [id$="Notepad"]');
-        existingModals.forEach(m => addTouchSupport(m));
-
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    if (node.nodeType === 1) {
-                        if (node.classList.contains('draggable-modal') ||
-                            node.style.position === 'absolute' ||
-                            node.querySelector('.notepad-header')) {
-                            addTouchSupport(node);
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1) {
+                            if (node.classList.contains('draggable-modal') ||
+                                node.style.position === 'absolute' ||
+                                node.querySelector('.notepad-header')) {
+                                addTouchSupport(node);
+                            }
                         }
-                    }
+                    });
                 });
             });
-        });
 
-        observer.observe(document.body, { childList: true, subtree: true });
-    });
+            observer.observe(document.body, { childList: true, subtree: true });
+        });
     </script>
     <script>
-    document.getElementById("mobileTestBtn").addEventListener("click", function () {
-        document.body.classList.toggle("mobile-test");
+        document.getElementById("mobileTestBtn").addEventListener("click", function () {
+            document.body.classList.toggle("mobile-test");
 
-        if (document.body.classList.contains("mobile-test")) {
-            this.textContent = "🖥 Back to Desktop";
-        } else {
-            this.textContent = "📱 Mobile Preview";
+            if (document.body.classList.contains("mobile-test")) {
+                this.textContent = "🖥 Back to Desktop";
+            } else {
+                this.textContent = "📱 Mobile Preview";
+            }
+        });
+    </script>
+    <script>
+        async function loadSavedNames() {
+            try {
+                const res = await fetch("/list_charts");
+                const data = await res.json();
+
+                if (data.status !== "ok") return;
+
+                const nameList = document.getElementById("nameList");
+                nameList.innerHTML = "";
+
+                data.charts.forEach(c => {
+                    const opt = document.createElement("option");
+                    opt.value = c.name.trim();      // remove trailing spaces
+                    opt.dataset.id = c.id;
+                    nameList.appendChild(opt);
+                });
+            } catch (e) {
+                console.error("Error loading saved names:", e);
+            }
         }
-    });
+
+        // Run when page loads
+        window.addEventListener("load", loadSavedNames);
+
+        // When user picks a saved name → load that chart
+        document.getElementById("name").addEventListener("change", () => {
+            const typed = document.getElementById("name").value.trim();
+            const match = [...document.getElementById("nameList").options]
+                .find(o => o.value.trim() === typed);
+
+            if (match) {
+                loadSavedChart(match.dataset.id);
+                // Already exists in your file
+            }
+        });
     </script>
 
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
