@@ -14,29 +14,30 @@ from padas import calculate_padas
 from karakas import calculate_chara_karakas
 from chart_comparison import get_dual_chart_data
 from divisional_charts import compute_all_divisions
-
-
-
-
-
 import os
 
-# === ✅ Set your actual project directory ===
-BASE_DIR = r"D:\Jamakkol application\JAmakkol\JAmakkol"
-os.makedirs(BASE_DIR, exist_ok=True)
+# ------------------------------------------------------------
+# ✅ ALWAYS USE LINUX-SAFE PATH FOR RENDER
+# ------------------------------------------------------------
+import os
 
-# === ✅ Use your real DB files ===
-CHARTS_DB = os.path.join(BASE_DIR, "charts.db")
-DASHA_DB = os.path.join(BASE_DIR, "dasha.db")
-EVENTS_DB = os.path.join(BASE_DIR, "events.db")
-TRANSIT_HISTORY_DB = os.path.join(BASE_DIR, "transit_history.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # /opt/render/project/src
+DATA_DIR = os.path.join(BASE_DIR, "data")
+os.makedirs(DATA_DIR, exist_ok=True)
 
-CHART_DB = CHARTS_DB  # ✅ backward compatibility
+CHARTS_DB = os.path.join(DATA_DIR, "charts.db")
+DASHA_DB = os.path.join(DATA_DIR, "dasha.db")
+EVENTS_DB = os.path.join(DATA_DIR, "events.db")
+TRANSIT_HISTORY_DB = os.path.join(DATA_DIR, "transit_history.db")
+
+CHART_DB = CHARTS_DB
+DB_PATH = CHARTS_DB
 
 print("📊 CHARTS_DB:", CHARTS_DB)
 print("🌙 DASHA_DB:", DASHA_DB)
 print("🧾 EVENTS_DB:", EVENTS_DB)
 print("🪐 TRANSIT_HISTORY_DB:", TRANSIT_HISTORY_DB)
+
 
 # ✅ ensure all chart data goes to the correct DB
 DB_PATH = CHARTS_DB
@@ -127,13 +128,21 @@ def ensure_transit_table():
     """)
     conn.commit()
     conn.close()
-
-def compute_maandhi(*args, **kwargs):
+    
+def compute_maandhi_safe(*args, **kwargs):
     result = _compute_maandhi(*args, **kwargs)
     if isinstance(result, dict):
         return result
     # Wrap stray string or other types
-    return {"dbg_line": str(result), "rasi": "", "dms": "", "nak": "", "pada": "", "rasi_lord": "", "maandhi_jd": 0.0}
+    return {
+        "dbg_line": str(result),
+        "rasi": "",
+        "dms": "",
+        "nak": "",
+        "pada": "",
+        "rasi_lord": "",
+        "maandhi_jd": 0.0
+    }
 
 app = Flask(__name__)
 
