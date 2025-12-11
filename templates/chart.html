@@ -562,10 +562,33 @@ center {
         <input id="name" list="nameList" placeholder="பெயர்">
         <datalist id="nameList"></datalist>
         
-<input id="date" type="date">
-        <div class="time-group">
-            <input id="time" type="time" step="1">
-        </div>
+<input id="date" type="text" placeholder="DD/MM/YYYY" maxlength="10">
+
+<script>
+document.getElementById("date").addEventListener("input", function(e) {
+    let v = e.target.value.replace(/\D/g, ""); // only numbers
+
+    if (v.length >= 3 && v.length <= 4)
+        v = v.slice(0,2) + "/" + v.slice(2);
+    else if (v.length >= 5)
+        v = v.slice(0,2) + "/" + v.slice(2,4) + "/" + v.slice(4,8);
+
+    e.target.value = v;
+});
+</script>
+<input id="time" type="text" placeholder="HH:MM" maxlength="5">
+
+<script>
+document.getElementById("time").addEventListener("input", function(e) {
+    let v = e.target.value.replace(/\D/g, "");
+
+    if (v.length >= 3)
+        v = v.slice(0,2) + ":" + v.slice(2,4);
+
+    e.target.value = v;
+});
+</script>
+
         
         <input id="place" list="placesList" placeholder="Type City (e.g. Chennai)..." autocomplete="off">
         <datalist id="placesList"></datalist>
@@ -1198,6 +1221,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
