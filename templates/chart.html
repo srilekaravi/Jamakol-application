@@ -562,17 +562,19 @@ center {
         <input id="name" list="nameList" placeholder="பெயர்">
         <datalist id="nameList"></datalist>
         
-<input id="date" type="text"
-       placeholder="YYYY-MM-DD"
-       pattern="\d{4}-\d{2}-\d{2}"
-       title="Format: YYYY-MM-DD">
+<input id="date" 
+       type="text" 
+       placeholder="DD/MM/YYYY" 
+       pattern="\d{2}/\d{2}/\d{4}" 
+       maxlength="10"
+       oninput="formatDate(this)">
 
-<div class="time-group">
-    <input id="time" type="text"
-           placeholder="HH:MM:SS"
-           pattern="\d{2}:\d{2}:\d{2}"
-           title="Format: HH:MM:SS">
-</div>
+<input id="time"
+       type="text"
+       placeholder="HH:MM:SS"
+       pattern="\d{2}:\d{2}:\d{2}"
+       maxlength="8">
+
 
         <input id="place" list="placesList" placeholder="Type City (e.g. Chennai)..." autocomplete="off">
         <datalist id="placesList"></datalist>
@@ -1202,21 +1204,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     </script>
 
-    <script>
-document.getElementById("date").addEventListener("input", function () {
-    let val = this.value;
-
-    // If user types in yyyy-mm-dd format
-    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
-        const parts = val.split("-");
-        this.value = `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-});
-</script>
-
 
 </body>
 </html>
+
 
 
 
