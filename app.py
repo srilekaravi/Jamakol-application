@@ -65,6 +65,7 @@ def ensure_dasha_table():
 ensure_dasha_table()
 
 
+
 # Always use a fixed file in your project folder
 TRANSIT_HISTORY_DB = os.path.join(os.path.dirname(__file__), "transit_history.db")
 print("🧭 Using DB file:", TRANSIT_HISTORY_DB)
@@ -85,6 +86,9 @@ TRANSIT_HISTORY_DB = os.path.join(DATA_DIR, "transit_history.db")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 EVENTS_DB = os.path.join(BASE_DIR, "data", "events.db")
+
+
+
 
 def ensure_events_table():
     """Create events table if it doesn't exist."""
@@ -137,6 +141,19 @@ DB_PATH = "charts.db"
 PLACES_DB = "places.db"
 DB_PATH = CHARTS_DB
   # ✅ ensure all chart data goes to /data/charts.db
+###################################
+#TRASIT TIMELINE FOR SAVED CHARTS
+###################################
+from timeline import register_timeline_routes, add_timeline_entry
+
+app = Flask(__name__)              # MUST be before timeline call
+CHARTS_DB = "charts.db"            # or your existing path variable
+
+register_timeline_routes(app, CHARTS_DB)   # SAFE TO CALL NOW
+
+
+
+##################################
 
 
 # -------------------- MAIN PAGE --------------------
@@ -349,123 +366,240 @@ def favicon():
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
-
-# -------------------- SAVE / LOAD CHART --------------------
+# -------------------- SAVE CHART (SMART UPSERT) --------------------
 @app.route("/save_chart", methods=["POST"])
 def save_chart():
-    import json as _json
-    data = request.get_json()
-    chart_data = data.get("data_json") or {}
-
-    # Ensure proper dict type
-    if isinstance(chart_data, str):
-        try:
-            chart_data = _json.loads(chart_data)
-        except Exception:
-            chart_data = {}
-
+    import datetime, json, sqlite3
+    
     try:
-        # --- Extract birth details for Dasha ---
-        date_str = data.get("date", "")
-        time_str = data.get("time", "")
-        if "-" in date_str:
-            year, month, day = (int(x) for x in date_str.split("-"))
+        data = request.get_json(force=True)
+
+        # 1. Extract Data
+        id_val = data.get("id") # Frontend might send ID
+        name = (data.get("name") or "").strip()
+        date_val = data.get("date") or ""
+        time_val = data.get("time") or ""
+        place_json = data.get("place") or "{}"
+        if isinstance(place_json, dict): place_json = json.dumps(place_json)
+        
+        gender = data.get("gender") or "male"
+        tag = data.get("tag") or ""
+        comment = data.get("comment") or ""
+        ayanamsa = data.get("ayanamsa") or ""
+        chart_data = data.get("chart") or {}
+
+        # 2. Timestamp
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        conn = sqlite3.connect(CHARTS_DB)
+        cur = conn.cursor()
+
+        # 3. Ensure columns exist
+        try: cur.execute("ALTER TABLE charts ADD COLUMN saved_at TEXT")
+        except: pass
+        try: cur.execute("ALTER TABLE charts ADD COLUMN updated_at TEXT")
+        except: pass
+
+        # 4. FIND EXISTING CHART (Smart Check)
+        # If ID is provided, use it.
+        # If NO ID, look for a chart with same Name + Date + Time (HH:MM)
+        chart_id = None
+        
+        if id_val:
+            chart_id = id_val
         else:
-            year, month, day = 2000, 1, 1
+            cur.execute("""
+                SELECT id FROM charts
+                WHERE TRIM(name)=? AND date=? AND SUBSTR(time,1,5)=SUBSTR(?,1,5)
+                ORDER BY id DESC LIMIT 1
+            """, (name, date_val, time_val))
+            row = cur.fetchone()
+            if row:
+                chart_id = row[0]
 
-        if ":" in time_str:
-            parts = [int(float(x)) for x in time_str.split(":")]
-            h, m, s = (parts + [0, 0, 0])[:3]
+        # 5. SAVE or UPDATE
+        if chart_id:
+            # UPDATE
+            cur.execute("""
+                UPDATE charts SET
+                    name=?, date=?, time=?, place_json=?, ayanamsa=?,
+                    comment=?, data_json=?, gender=?, tag=?, updated_at=?
+                WHERE id=?
+            """, (
+                name, date_val, time_val, place_json, ayanamsa,
+                comment, json.dumps(chart_data, ensure_ascii=False),
+                gender, tag, now, chart_id
+            ))
+            msg = "Chart updated"
         else:
-            h, m, s = 0, 0, 0
+            # INSERT NEW
+            cur.execute("""
+                INSERT INTO charts (
+                    name, date, time, place_json, ayanamsa, comment,
+                    data_json, gender, tag, saved_at, updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                name, date_val, time_val,
+                place_json, ayanamsa, comment,
+                json.dumps(chart_data, ensure_ascii=False),
+                gender, tag, now, now
+            ))
+            chart_id = cur.lastrowid
+            msg = "Chart saved"
 
-        lat = float(chart_data.get("lat", 13.0827))
-        lon = float(chart_data.get("lon", 80.2707))
-        tz = float(chart_data.get("tz", 5.5))
+        conn.commit()
+        conn.close()
 
-        # --- Compute Vimshottari Dasha ---
-        from vimshottari import compute_vimshottari
-        dasha_result = compute_vimshottari(year, month, day, h, m, s, lat, lon, tz)
-
-        # Attach dashas back into chart JSON
-        chart_data["dashas"] = dasha_result.get("mahadasha", [])
-        data["data_json"] = chart_data
+        return jsonify({
+            "status": "ok",
+            "message": msg,
+            "chart_id": chart_id,
+            "saved_on": now
+        })
 
     except Exception as e:
-        print("⚠️ Dasha computation skipped:", e)
-        dasha_result = {"mahadasha": []}
+        print("❌ save_chart error:", e)
+        return jsonify({"status": "error", "message": str(e)})
+#####################################################
+# Update chart
+#####################################################
+@app.route("/update_chart_full", methods=["POST"])
+def update_chart_full():
+    """Insert new or update existing chart with TIMESTAMPS."""
+    import sqlite3, traceback, datetime, json
 
-    # --- Save or Update in charts.db ---
-    # --- Save or Update in charts.db ---
+    try:
+        data = request.get_json(force=True)
+        if not data:
+            return jsonify({"status": "error", "message": "No data received"}), 400
+
+        # ✅ Get Current Time
+        now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Normalize JSON fields
+        for k in ["place_json", "data_json"]:
+            if isinstance(data.get(k), (dict, list)):
+                data[k] = json.dumps(data[k], ensure_ascii=False)
+            elif not data.get(k):
+                data[k] = "{}"
+
+        conn = sqlite3.connect(CHARTS_DB)
+        cur = conn.cursor()
+
+        # Ensure columns exist
+        try: cur.execute("ALTER TABLE charts ADD COLUMN saved_at TEXT")
+        except: pass
+        try: cur.execute("ALTER TABLE charts ADD COLUMN updated_at TEXT")
+        except: pass
+
+        # Fields to save
+        fields = ["name", "date", "time", "seconds", "ayanamsa", "chartType",
+                  "gender", "tag", "comment", "place_json", "data_json"]
+
+        if data.get("id"):
+            # --- UPDATE EXISTING ---
+            cid = int(data["id"])
+            # Add updated_at to the update query
+            set_clause = ", ".join([f"{f}=?" for f in fields]) + ", updated_at=?"
+            values = [data.get(f, "") for f in fields] + [now, cid]
+            
+            cur.execute(f"UPDATE charts SET {set_clause} WHERE id=?", values)
+            msg = "Chart updated"
+        else:
+            # --- INSERT NEW ---
+            # Add saved_at AND updated_at to insert query
+            all_fields = fields + ["saved_at", "updated_at"]
+            placeholders = ", ".join(["?"] * len(all_fields))
+            values = [data.get(f, "") for f in fields] + [now, now]
+            
+            cur.execute(
+                f"INSERT INTO charts ({', '.join(all_fields)}) VALUES ({placeholders})",
+                values
+            )
+            cid = cur.lastrowid
+            msg = "Chart saved"
+
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "ok", "message": msg, "id": cid, "saved_on": now})
+
+    except Exception as e:
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+    #############################
+    #Removing Duplicates
+    #############################
+@app.route("/remove_duplicates")
+def remove_duplicates():
+    import sqlite3
     conn = sqlite3.connect(CHARTS_DB)
     cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS charts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT, date TEXT, time TEXT,
-            place_json TEXT, ayanamsa TEXT,
-            comment TEXT, data_json TEXT
-        )
-    """)
-
-    chart_id = data.get("id")
-
-        # 🧠 Try to match existing chart even if no ID is passed (smart match, no duplicates)
-    if not chart_id:
-        name = (data.get("name") or "").strip()
-        date_val = (data.get("date") or "").strip()
-        time_val = (data.get("time") or "").strip()
-
-        # Fuzzy match: ignore small formatting differences in date/time
-        cur.execute("""
-            SELECT id FROM charts
-            WHERE name = ?
-              AND REPLACE(date, '-0', '-') = REPLACE(?, '-0', '-')
-              AND substr(time, 1, 5) = substr(?, 1, 5)
-            ORDER BY id DESC LIMIT 1
-        """, (name, date_val, time_val))
-        row = cur.fetchone()
-        if row:
-            chart_id = row[0]
-            print(f"🟢 Existing chart matched: id={chart_id}")
-
-
-    if chart_id:
-        # ✅ Update instead of inserting a new record
-        cur.execute("""
-            UPDATE charts
-            SET name=?, date=?, time=?, place_json=?, ayanamsa=?, comment=?, data_json=?
-            WHERE id=?
-        """, (
-            data.get("name"),
-            data.get("date"),
-            data.get("time"),
-            str(data.get("place_json")),
-            data.get("ayanamsa"),
-            data.get("comment"),
-            str(data.get("data_json")),
-            int(chart_id)
-        ))
-        msg = f"Chart #{chart_id} updated successfully"
-    else:
-        # 🆕 Insert only if truly new
-        cur.execute("""
-            INSERT INTO charts (name, date, time, place_json, ayanamsa, comment, data_json)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            data.get("name"),
-            data.get("date"),
-            data.get("time"),
-            str(data.get("place_json")),
-            data.get("ayanamsa"),
-            data.get("comment"),
-            str(data.get("data_json"))
-        ))
-        chart_id = cur.lastrowid
-        msg = "Chart saved successfully"
-
+    
+    # Keep the row with the MAX(id) (newest) for every unique combination of Name, Date, Time (HH:MM)
+    query = """
+    DELETE FROM charts 
+    WHERE id NOT IN (
+        SELECT MAX(id) 
+        FROM charts 
+        GROUP BY name, date, SUBSTR(time, 1, 5)
+    )
+    """
+    cur.execute(query)
+    deleted_count = cur.rowcount
     conn.commit()
     conn.close()
+    
+    return jsonify({"status": "ok", "message": f"Removed {deleted_count} duplicate charts."})
+    # -------- UPDATE EXISTING CHART --------
+    if row:
+        chart_id = row[0]
+        cur.execute("""
+            UPDATE charts SET
+                name=?, date=?, time=?, place_json=?, ayanamsa=?,
+                comment=?, data_json=?, gender=?, tag=?, updated_at=?
+            WHERE id=?
+        """, (
+            name, date_val, time_val, place_json, ayanamsa,
+            comment, json.dumps(chart_data, ensure_ascii=False),
+            gender, tag, now, chart_id
+        ))
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "status": "updated",
+            "chart_id": chart_id,
+            "saved_on": now         # ← Frontend uses saved_on
+        })
+
+    # -------- INSERT NEW CHART --------
+    cur.execute("""
+        INSERT INTO charts (
+            name, date, time, place_json, ayanamsa, comment,
+            data_json, gender, tag, saved_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        name, date_val, time_val,
+        place_json, ayanamsa, comment,
+        json.dumps(chart_data, ensure_ascii=False),
+        gender, tag, now, now
+    ))
+
+    chart_id = cur.lastrowid
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "status": "saved",
+        "chart_id": chart_id,
+        "saved_on": now            # ← Frontend uses saved_on
+    })
+
+
+
 
 
     # --- Also store Dasha info ---
@@ -562,75 +696,50 @@ def save_chart():
 @app.route("/list_charts", methods=["GET"])
 def list_charts():
     """
-    Returns all saved charts (SQLite or TinyDB compatible)
+    Returns all saved charts with robust timestamp handling
     """
-    import os, json, re
+    import os, json, re, sqlite3
 
     charts = []
 
     def safe_json_loads(val):
-        """Safely parse JSON (fix single quotes or malformed data)"""
-        if not val:
-            return {}
-        if isinstance(val, dict):
-            return val
-        try:
-            return json.loads(val)
-        except Exception:
-            try:
-                fixed = re.sub(r"'", '"', val)
-                return json.loads(fixed)
-            except Exception:
-                return {}
+        if not val: return {}
+        try: return json.loads(val)
+        except: return {}
 
     try:
-        # --- SQLite backend ---
-        if os.path.exists("charts.db"):
-            import sqlite3
-            conn = sqlite3.connect("charts.db")
-            conn.row_factory = sqlite3.Row
-            cur = conn.cursor()
-            cur.execute("SELECT * FROM charts ORDER BY id DESC")
-            rows = cur.fetchall()
-            conn.close()
+        conn = sqlite3.connect(CHARTS_DB)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        
+        # Select all columns
+        cur.execute("SELECT * FROM charts ORDER BY id DESC")
+        rows = cur.fetchall()
+        conn.close()
 
-            for row in rows:
-                r = dict(row)
-                charts.append({
-                    "id": r.get("id"),
-                    "name": r.get("name", ""),
-                    "date": r.get("date", ""),
-                    "time": r.get("time", ""),
-                    "ayanamsa": r.get("ayanamsa", ""),
-                    "chartType": r.get("chartType", ""),
-                    "gender": r.get("gender", ""),
-                    "tag": r.get("tag", ""),
-                    "comment": r.get("comment", ""),
-                    "place_json": safe_json_loads(r.get("place_json")),
-                    "data_json": safe_json_loads(r.get("data_json"))
-                })
+        for row in rows:
+            r = dict(row)
+            
+            # 1. Try updated_at, then saved_at, then saved_on
+            # 2. If all fail, use current time (to avoid "-") OR keep "-"
+            ts = r.get("updated_at") or r.get("saved_at") or r.get("saved_on")
+            
+            # Fallback: If DB has NULL, show "-"
+            if not ts:
+                ts = "-"
 
-        # --- TinyDB fallback ---
-        elif os.path.exists("charts.json"):
-            from tinydb import TinyDB
-            db = TinyDB("charts.json")
-            for doc in db.all():
-                charts.append({
-                    "id": doc.get("id") or doc.doc_id,
-                    "name": doc.get("name", ""),
-                    "date": doc.get("date", ""),
-                    "time": doc.get("time", ""),
-                    "ayanamsa": doc.get("ayanamsa", ""),
-                    "chartType": doc.get("chartType", ""),
-                    "gender": doc.get("gender", ""),
-                    "tag": doc.get("tag", ""),
-                    "comment": doc.get("comment", ""),
-                    "place_json": safe_json_loads(doc.get("place_json")),
-                    "data_json": safe_json_loads(doc.get("data_json"))
-                })
-
-        else:
-            print("⚠️ No charts.db or charts.json found — returning empty list.")
+            charts.append({
+                "id": r.get("id"),
+                "name": r.get("name", ""),
+                "date": r.get("date", ""),
+                "time": r.get("time", ""),
+                "gender": r.get("gender", ""),
+                "tag": r.get("tag", ""),
+                "comment": r.get("comment", ""),
+                "place_json": safe_json_loads(r.get("place_json")),
+                # Send the found timestamp
+                "saved_on": ts
+            })
             
         return jsonify({"status": "ok", "charts": charts})
 
@@ -651,7 +760,7 @@ def get_chart(cid):
     import sqlite3
     from flask import jsonify
 
-    conn = sqlite3.connect("charts.db")
+    conn = sqlite3.connect(CHARTS_DB)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
@@ -676,65 +785,7 @@ def get_chart(cid):
 
 
 
-@app.route("/update_chart_full", methods=["POST"])
-def update_chart_full():
-    """Insert new or update existing chart safely (no duplicates)."""
-    
-    import sqlite3, traceback
 
-    try:
-        data = request.get_json(force=True)
-        if not data:
-            return jsonify({"status": "error", "message": "No data received"}), 400
-
-        # normalize JSON fields
-        for k in ["place_json", "data_json"]:
-            if isinstance(data.get(k), (dict, list)):
-                data[k] = json.dumps(data[k], ensure_ascii=False)
-            elif not data.get(k):
-                data[k] = "{}"
-
-        # ensure table exists
-        conn = sqlite3.connect("charts.db")
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS charts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT, date TEXT, time TEXT, seconds TEXT,
-                ayanamsa TEXT, chartType TEXT, gender TEXT,
-                tag TEXT, comment TEXT,
-                place_json TEXT, data_json TEXT
-            )
-        """)
-
-        # fields used
-        fields = ["name", "date", "time", "seconds", "ayanamsa", "chartType",
-                  "gender", "tag", "comment", "place_json", "data_json"]
-
-        if data.get("id"):
-            # --- UPDATE EXISTING ---
-            cid = int(data["id"])
-            set_clause = ", ".join([f"{f}=?" for f in fields])
-            values = [data.get(f, "") for f in fields] + [cid]
-            cur.execute(f"UPDATE charts SET {set_clause} WHERE id=?", values)
-            msg = "Chart updated"
-        else:
-            # --- INSERT NEW ---
-            placeholders = ", ".join(["?"] * len(fields))
-            cur.execute(
-                f"INSERT INTO charts ({', '.join(fields)}) VALUES ({placeholders})",
-                [data.get(f, "") for f in fields]
-            )
-            cid = cur.lastrowid
-            msg = "Chart saved"
-
-        conn.commit()
-        conn.close()
-        return jsonify({"status": "ok", "message": msg, "id": cid})
-
-    except Exception as e:
-        traceback.print_exc()
-        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/delete_chart/<int:cid>", methods=["POST"])
@@ -742,7 +793,7 @@ def delete_chart(cid):
     """Delete a chart by ID"""
     import sqlite3, traceback
     try:
-        conn = sqlite3.connect("charts.db")
+        conn = sqlite3.connect(CHARTS_DB)
         cur = conn.cursor()
         cur.execute("DELETE FROM charts WHERE id=?", (cid,))
         conn.commit()
@@ -2301,6 +2352,48 @@ def get_all_divisions():
         return jsonify({"status": "ok", "charts": charts})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)})
+#######################################################################
+#Time stamp
+#######################################################################
+
+@app.route("/fix_timestamps")
+def fix_timestamps():
+    import sqlite3
+    from datetime import datetime
+
+    # Current time
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    conn = sqlite3.connect(CHARTS_DB)
+    cur = conn.cursor()
+
+    # Ensure columns exist
+    try: cur.execute("ALTER TABLE charts ADD COLUMN saved_at TEXT")
+    except: pass
+    try: cur.execute("ALTER TABLE charts ADD COLUMN updated_at TEXT")
+    except: pass
+
+    # 1. Fix NULLs, empty strings, dashes, or "None" text
+    query = """
+        UPDATE charts 
+        SET saved_at = ? 
+        WHERE saved_at IS NULL 
+           OR saved_at = '' 
+           OR saved_at = '-' 
+           OR saved_at = 'None'
+    """
+    cur.execute(query, (now,))
+    rows_affected = cur.rowcount
+
+    # 2. Sync updated_at with saved_at
+    cur.execute("UPDATE charts SET updated_at = saved_at WHERE updated_at IS NULL OR updated_at = ''")
+
+    conn.commit()
+    conn.close()
+
+    return {"status": "ok", "message": f"Fixed {rows_affected} records successfully!"}
+
+
 # ================================================================
 # 🚀 Run the Flask app (THIS MUST BE THE LAST THING IN THE FILE)
 # ================================================================
