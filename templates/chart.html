@@ -1202,8 +1202,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     </script>
 
+    <script>
+document.getElementById("date").addEventListener("input", function () {
+    let val = this.value;
+
+    // If user types in yyyy-mm-dd format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        const parts = val.split("-");
+        this.value = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+});
+</script>
+
+
 </body>
 </html>
+
 
 
 
