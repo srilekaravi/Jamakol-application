@@ -563,23 +563,8 @@ center {
         <datalist id="nameList"></datalist>
         
 <input id="date"
-       type="text"
-       inputmode="numeric"
-       placeholder="DD/MM/YYYY"
-       maxlength="10"
-       autocomplete="off"
-       onfocus="this.type='text'"
-       oninput="formatDate(this)">
-
-<input id="time"
-       type="text"
-       inputmode="numeric"
-       placeholder="HH:MM:SS"
-       maxlength="8"
-       autocomplete="off"
-       onfocus="this.type='text'"
-       oninput="formatTime(this)">
-
+<input type="text" id="dateInput" placeholder="DD/MM/YYYY">
+<input type="text" id="timeInput" placeholder="HH:MM:SS">
         <input id="place" list="placesList" placeholder="Type City (e.g. Chennai)..." autocomplete="off">
         <datalist id="placesList"></datalist>
 
@@ -1211,6 +1196,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
