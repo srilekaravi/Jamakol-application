@@ -562,9 +562,12 @@ center {
         <input id="name" list="nameList" placeholder="பெயர்">
         <datalist id="nameList"></datalist>
         
-<input id="date"
-<input type="text" id="dateInput" placeholder="DD/MM/YYYY">
-<input type="text" id="timeInput" placeholder="HH:MM:SS">
+<input id="date" type="date">
+        <div class="time-group">
+            <input id="time" type="time" step="1">
+            <input id="seconds" type="number" min="0" max="59" value="0" placeholder="Sec">
+        </div>
+        
         <input id="place" list="placesList" placeholder="Type City (e.g. Chennai)..." autocomplete="off">
         <datalist id="placesList"></datalist>
 
@@ -1196,6 +1199,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
+
 
 
 
