@@ -21,7 +21,8 @@ import os
 # ------------------------------------------------------------
 import os
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # /opt/render/project/src
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 DATA_DIR = os.path.join(BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -32,6 +33,7 @@ TRANSIT_HISTORY_DB = os.path.join(DATA_DIR, "transit_history.db")
 
 CHART_DB = CHARTS_DB
 DB_PATH = CHARTS_DB
+
 
 print("📊 CHARTS_DB:", CHARTS_DB)
 print("🌙 DASHA_DB:", DASHA_DB)
