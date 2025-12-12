@@ -155,6 +155,7 @@ DB_PATH = CHARTS_DB
 ###################################
 #TRASIT TIMELINE FOR SAVED CHARTS
 ###################################
+from timeline import register_timeline_routes, add_timeline_entry
 
 app = Flask(__name__)              # MUST be before timeline call
 CHARTS_DB = "charts.db"            # or your existing path variable
