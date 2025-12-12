@@ -152,15 +152,18 @@ DB_PATH = "charts.db"
 PLACES_DB = "places.db"
 DB_PATH = CHARTS_DB
   # ✅ ensure all chart data goes to /data/charts.db
+
+
 ###################################
-#TRASIT TIMELINE FOR SAVED CHARTS
+# TRANSIT TIMELINE FOR SAVED CHARTS
 ###################################
 from timeline import register_timeline_routes, add_timeline_entry
 
-app = Flask(__name__)              # MUST be before timeline call
-CHARTS_DB = "charts.db"            # or your existing path variable
+app = Flask(__name__)
+CHARTS_DB = "charts.db"
 
-register_timeline_routes(app, CHARTS_DB)   # SAFE TO CALL NOW
+register_timeline_routes(app, CHARTS_DB)
+
 
 
 
