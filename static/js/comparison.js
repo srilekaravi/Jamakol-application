@@ -1,7 +1,8 @@
 /**
- * comparison.js - MOBILE & TABLET RESPONSIVE UPDATE
- * 1. UI: Added Media Queries for Mobile/Tablet views.
- * 2. Logic: Preserved Dasa Sandhi & all original logic.
+ * comparison.js - FIXED: Compact Print Layout (A4 Fit) + External Search
+ * 1. FIX: Print CSS tuned to fit everything on one A4 page.
+ * 2. FIX: "Planet Relationship" table now fits by reducing cell padding.
+ * 3. KEEPS: Chart Grid size remains unchanged (as requested).
  */
 
 let SAVED_CHARTS = [];
@@ -24,40 +25,42 @@ const DASHA_INPUT_MAP = {
 };
 
 const ENG_TO_TAMIL_SHORT = {
-    "Sun": "சூரி", "Moon": "சந்", "Mars": "செவ்", "Mercury": "புத", 
+    "Sun": "சூரி", "Moon": "சந்", "Mars": "செவ்", "Mercury": "புத",
     "Jupiter": "குரு", "Venus": "சுக்", "Saturn": "சனி", "Rahu": "ராகு", "Ketu": "கேது"
 };
 
-// Default Settings
+// Default Settings - OPTIMIZED FOR A4 PRINT
 let UI_SETTINGS = {
-    fontSize: 13,   
-    chartSize: 450, 
+    fontSize: 13,
+    chartSize: 450,
     screen: { width: 100, padding: 6, font: 13 },
     print: {
-        width: 100, padding: 4, font: 12,
-        chartSize: 320,     
-        headerSize: 24,
+        width: 100,
+        padding: 2, // Reduced default padding for compact print
+        font: 11,   // Slightly smaller font for tables
+        chartSize: 320,
+        headerSize: 22,
         footerLogoSize: 30,
         footerTextSize: 10,
         isBold: false, isBnW: false
     }
 };
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     fetch('/list_charts').then(r => r.json()).then(res => {
-        if(res.status === "ok") { SAVED_CHARTS = res.charts; populateCompNameList(); }
+        if (res.status === "ok") { SAVED_CHARTS = res.charts; populateCompNameList(); }
     });
     const formBar = document.getElementById("formbar");
     if (formBar) {
         const oldBtn = document.getElementById("compareBtn");
-        if(oldBtn) oldBtn.remove();
+        if (oldBtn) oldBtn.remove();
         const btn = document.createElement("button");
         btn.id = "compareBtn";
-        btn.innerHTML = "💑 திருமணப் பொருத்தம்"; 
+        btn.innerHTML = "💑 திருமணப் பொருத்தம்";
         btn.style.background = "#E91E63"; btn.style.color = "white";
         btn.style.marginLeft = "10px"; btn.style.cursor = "pointer";
         btn.onclick = openCompModal;
-        formBar.appendChild(btn); 
+        formBar.appendChild(btn);
     }
     injectCompModal();
 });
@@ -169,7 +172,7 @@ function injectCompModal() {
                         </div>
                         <label>பெயர்:</label><input id="cBoyName" list="compSavedList" placeholder="Select Saved Name" onchange="autoFill('Boy')">
                         <div style="display:flex; gap:5px; margin:8px 0;"><input type="date" id="cBoyDate" style="flex:1;"><input type="time" id="cBoyTime" style="flex:1;" step="1"></div>
-                        <label>பிறந்த இடம்:</label><input id="cBoyPlace" list="placesList" placeholder="City">
+                        <label>பிறந்த இடம்:</label><input id="cBoyPlace" list="placesList" placeholder="Type City (e.g. Chennai)" onkeyup="searchCity(this)">
                     </div>
                     <div class="input-card" style="border-top: 4px solid #E91E63;">
                         <div class="card-header">
@@ -178,7 +181,7 @@ function injectCompModal() {
                         </div>
                         <label>பெயர்:</label><input id="cGirlName" list="compSavedList" placeholder="Select Saved Name" onchange="autoFill('Girl')">
                         <div style="display:flex; gap:5px; margin:8px 0;"><input type="date" id="cGirlDate" style="flex:1;"><input type="time" id="cGirlTime" style="flex:1;" step="1"></div>
-                        <label>பிறந்த இடம்:</label><input id="cGirlPlace" list="placesList" placeholder="City">
+                        <label>பிறந்த இடம்:</label><input id="cGirlPlace" list="placesList" placeholder="Type City (e.g. Madurai)" onkeyup="searchCity(this)">
                     </div>
                     <div class="action-buttons" style="display:flex; flex-direction:column; gap:10px; align-items:center;">
                         <button onclick="runComparison()" style="background:#000080; color:white; border:none; padding:12px 30px; font-weight:bold; cursor:pointer; font-size:16px; border-radius:4px;">பொருத்தம் பார்</button>
@@ -186,6 +189,7 @@ function injectCompModal() {
                     </div>
                 </div>
                 <datalist id="compSavedList"></datalist>
+                <datalist id="placesList"></datalist>
 
                 <div id="compResults" style="display:none; padding:20px; background:#eef;">
                     <div class="charts-flex-container">
@@ -323,17 +327,17 @@ function injectCompModal() {
 }
 
 function adjustSettings(type, delta) {
-    if(type === 'font') {
+    if (type === 'font') {
         UI_SETTINGS.fontSize += delta;
-        if(UI_SETTINGS.fontSize < 8) UI_SETTINGS.fontSize = 8;
-        if(UI_SETTINGS.fontSize > 24) UI_SETTINGS.fontSize = 24;
+        if (UI_SETTINGS.fontSize < 8) UI_SETTINGS.fontSize = 8;
+        if (UI_SETTINGS.fontSize > 24) UI_SETTINGS.fontSize = 24;
     } else if (type === 'chart') {
         UI_SETTINGS.chartSize += delta;
-        if(UI_SETTINGS.chartSize < 250) UI_SETTINGS.chartSize = 250;
-        if(UI_SETTINGS.chartSize > 800) UI_SETTINGS.chartSize = 800;
+        if (UI_SETTINGS.chartSize < 250) UI_SETTINGS.chartSize = 250;
+        if (UI_SETTINGS.chartSize > 800) UI_SETTINGS.chartSize = 800;
     }
     const wrapper = document.getElementById("compWrapper");
-    if(wrapper) {
+    if (wrapper) {
         wrapper.style.setProperty('--base-font', UI_SETTINGS.fontSize + "px");
         wrapper.style.setProperty('--chart-dim', UI_SETTINGS.chartSize + "px");
     }
@@ -341,18 +345,18 @@ function adjustSettings(type, delta) {
 
 function togglePanel(id) {
     const panel = document.getElementById(id);
-    if(id === 'screenPanel') document.getElementById('printPanel').style.display = "none";
-    if(id === 'printPanel') document.getElementById('screenPanel').style.display = "none";
+    if (id === 'screenPanel') document.getElementById('printPanel').style.display = "none";
+    if (id === 'printPanel') document.getElementById('screenPanel').style.display = "none";
     panel.style.display = (panel.style.display === "none") ? "block" : "none";
 }
 
 function adjustScreen(val, type) {
     UI_SETTINGS.screen[type] = val;
-    if(type === 'width') document.getElementById('lblSW').innerText = val + "%";
-    if(type === 'padding') document.getElementById('lblSP').innerText = val + "px";
-    if(type === 'font') document.getElementById('lblSF').innerText = val + "px";
+    if (type === 'width') document.getElementById('lblSW').innerText = val + "%";
+    if (type === 'padding') document.getElementById('lblSP').innerText = val + "px";
+    if (type === 'font') document.getElementById('lblSF').innerText = val + "px";
     const wrapper = document.getElementById("compWrapper");
-    if(wrapper) {
+    if (wrapper) {
         wrapper.style.setProperty('--tbl-width', UI_SETTINGS.screen.width + "%");
         wrapper.style.setProperty('--tbl-pad', UI_SETTINGS.screen.padding + "px");
         wrapper.style.setProperty('--tbl-font', UI_SETTINGS.screen.font + "px");
@@ -361,30 +365,38 @@ function adjustScreen(val, type) {
 
 function adjustPrint(val, type) {
     UI_SETTINGS.print[type] = val;
-    if(type === 'width') document.getElementById('lblPW').innerText = val + "%";
-    if(type === 'padding') document.getElementById('lblPP').innerText = val + "px";
-    if(type === 'font') document.getElementById('lblPF').innerText = val + "px";
-    if(type === 'chartSize') document.getElementById('lblPChart').innerText = val + "px";
-    if(type === 'headerSize') document.getElementById('lblPH').innerText = val + "px";
-    if(type === 'footerLogoSize') document.getElementById('lblPFootLogo').innerText = val + "px";
-    if(type === 'footerTextSize') document.getElementById('lblPFootText').innerText = val + "px";
+    if (type === 'width') document.getElementById('lblPW').innerText = val + "%";
+    if (type === 'padding') document.getElementById('lblPP').innerText = val + "px";
+    if (type === 'font') document.getElementById('lblPF').innerText = val + "px";
+    if (type === 'chartSize') document.getElementById('lblPChart').innerText = val + "px";
+    if (type === 'headerSize') document.getElementById('lblPH').innerText = val + "px";
+    if (type === 'footerLogoSize') document.getElementById('lblPFootLogo').innerText = val + "px";
+    if (type === 'footerTextSize') document.getElementById('lblPFootText').innerText = val + "px";
 }
 
 function toggleDoshaVisibility() {
     const show = document.getElementById("showDoshaCheck").checked;
     const cont = document.getElementById("doshaContainer");
-    if(cont) cont.style.display = show ? "block" : "none";
+    if (cont) cont.style.display = show ? "block" : "none";
 }
 
-function populateCompNameList() { const dl = document.getElementById("compSavedList"); if(!dl) return; dl.innerHTML = ""; SAVED_CHARTS.forEach(c => { const opt = document.createElement("option"); opt.value = c.name; dl.appendChild(opt); }); }
+function populateCompNameList() { const dl = document.getElementById("compSavedList"); if (!dl) return; dl.innerHTML = ""; SAVED_CHARTS.forEach(c => { const opt = document.createElement("option"); opt.value = c.name; dl.appendChild(opt); }); }
+
+// --- FIXED AUTOFILL: NOW STORES COORDS DIRECTLY ON INPUT ---
 function autoFill(gender) {
-    const nameVal = document.getElementById('c'+gender+'Name').value;
+    const nameVal = document.getElementById('c' + gender + 'Name').value;
     const chart = SAVED_CHARTS.find(c => c.name === nameVal);
-    if(chart) {
-        document.getElementById('c'+gender+'Date').value = chart.date;
-        document.getElementById('c'+gender+'Time').value = chart.time;
-        const pInput = document.getElementById('c'+gender+'Place');
-        if(chart.place_json && chart.place_json.city) pInput.value = chart.place_json.city;
+    if (chart) {
+        document.getElementById('c' + gender + 'Date').value = chart.date;
+        document.getElementById('c' + gender + 'Time').value = chart.time;
+        const pInput = document.getElementById('c' + gender + 'Place');
+        if (chart.place_json && chart.place_json.city) {
+            pInput.value = chart.place_json.city;
+            // Store coordinates directly on the element (Crucial Fix)
+            pInput.setAttribute("data-lat", chart.place_json.lat);
+            pInput.setAttribute("data-lon", chart.place_json.lon);
+            pInput.setAttribute("data-tz", chart.place_json.tz || 5.5);
+        }
         updateMatchCount(nameVal, gender);
     }
 }
@@ -394,10 +406,10 @@ function updateMatchCount(name, gender) {
     const badge = document.getElementById(gender === "Boy" ? "boyBadge" : "girlBadge");
     const listDiv = document.getElementById(gender === "Boy" ? "boyHistoryList" : "girlHistoryList");
     fetch('/get_match_count', { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: name }) }).then(r => r.json()).then(res => {
-        if(res.status === "ok") {
+        if (res.status === "ok") {
             badge.style.display = "block";
             let txtSpan = badge.querySelector("span");
-            if(!txtSpan) { txtSpan = document.createElement("span"); badge.insertBefore(txtSpan, listDiv); }
+            if (!txtSpan) { txtSpan = document.createElement("span"); badge.insertBefore(txtSpan, listDiv); }
             txtSpan.innerText = `👁️ Checked: ${res.count} Profiles `;
             HISTORY_DATA[gender] = res.recent; let html = "";
             if (res.recent.length === 0) html = "<div class='history-item'>No matches yet</div>";
@@ -407,23 +419,23 @@ function updateMatchCount(name, gender) {
     });
 }
 function toggleHistory(gender) { const id = gender === "Boy" ? "boyHistoryList" : "girlHistoryList"; const list = document.getElementById(id); const isVisible = list.style.display === "block"; document.getElementById("boyHistoryList").style.display = "none"; document.getElementById("girlHistoryList").style.display = "none"; if (!isVisible) list.style.display = "block"; event.stopPropagation(); }
-window.onclick = function(event) { if (!event.target.matches('.history-badge') && !event.target.closest('.history-badge')) { const dropdowns = document.getElementsByClassName("history-dropdown"); for (let i = 0; i < dropdowns.length; i++) { dropdowns[i].style.display = "none"; } } }
+window.onclick = function (event) { if (!event.target.matches('.history-badge') && !event.target.closest('.history-badge')) { const dropdowns = document.getElementsByClassName("history-dropdown"); for (let i = 0; i < dropdowns.length; i++) { dropdowns[i].style.display = "none"; } } }
 
 function toggleNotepad() {
     const pad = document.getElementById("matchNotepad");
-    if(pad.style.display === "none") { pad.style.display = "block"; loadMatchNote(); } else { pad.style.display = "none"; }
+    if (pad.style.display === "none") { pad.style.display = "block"; loadMatchNote(); } else { pad.style.display = "none"; }
 }
 function saveMatchNote() {
     const bName = document.getElementById("cBoyName").value;
     const gName = document.getElementById("cGirlName").value;
     const note = document.getElementById("matchNoteText").value;
-    if(!bName || !gName) { alert("Select profiles first"); return; }
-    fetch('/save_match_note', { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ boy: bName, girl: gName, note: note }) }).then(r => r.json()).then(d => { if(d.status === "ok") alert("Note Saved!"); });
+    if (!bName || !gName) { alert("Select profiles first"); return; }
+    fetch('/save_match_note', { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ boy: bName, girl: gName, note: note }) }).then(r => r.json()).then(d => { if (d.status === "ok") alert("Note Saved!"); });
 }
 function loadMatchNote() {
     const bName = document.getElementById("cBoyName").value;
     const gName = document.getElementById("cGirlName").value;
-    if(!bName || !gName) return;
+    if (!bName || !gName) return;
     fetch('/get_match_note', { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ boy: bName, girl: gName }) }).then(r => r.json()).then(d => { document.getElementById("matchNoteText").value = d.note || ""; });
 }
 function dragElement(elmnt) {
@@ -435,9 +447,41 @@ function dragElement(elmnt) {
     function closeDragElement() { document.onmouseup = null; document.onmousemove = null; }
 }
 
-function loadHistoryPartner(partnerName, currentGender) { const targetGender = currentGender === "Boy" ? "Girl" : "Boy"; const chart = SAVED_CHARTS.find(c => c.name === partnerName); if (chart) { document.getElementById('c'+targetGender+'Name').value = chart.name; document.getElementById('c'+targetGender+'Date').value = chart.date; document.getElementById('c'+targetGender+'Time').value = chart.time; if(chart.place_json && chart.place_json.city) { document.getElementById('c'+targetGender+'Place').value = chart.place_json.city; } updateMatchCount(partnerName, targetGender); runComparison(); } else { alert(`Details for '${partnerName}' not found.`); } }
+function loadHistoryPartner(partnerName, currentGender) { const targetGender = currentGender === "Boy" ? "Girl" : "Boy"; const chart = SAVED_CHARTS.find(c => c.name === partnerName); if (chart) { document.getElementById('c' + targetGender + 'Name').value = chart.name; document.getElementById('c' + targetGender + 'Date').value = chart.date; document.getElementById('c' + targetGender + 'Time').value = chart.time; if (chart.place_json && chart.place_json.city) { document.getElementById('c' + targetGender + 'Place').value = chart.place_json.city; } updateMatchCount(partnerName, targetGender); runComparison(); } else { alert(`Details for '${partnerName}' not found.`); } }
 function openCompModal() { document.getElementById("comparisonModal").style.display = "block"; }
-function getPlaceCoords(placeStr) { let coords = { lat: 13.08, lon: 80.27, tz: 5.5 }; if(!placeStr) return coords; const placesList = document.getElementById("placesList"); if(placesList) { for (let i = 0; i < placesList.options.length; i++) { if (placesList.options[i].value === placeStr) { coords.lat = parseFloat(placesList.options[i].getAttribute('data-lat')); coords.lon = parseFloat(placesList.options[i].getAttribute('data-lon')); coords.tz = parseFloat(placesList.options[i].getAttribute('data-tz')); break; } } } return coords; }
+
+// --- FIXED: getPlaceCoords Checks Input Data First, then Datalist, then Default ---
+function getPlaceCoords(inputElem) {
+    let coords = { lat: 13.08, lon: 80.27, tz: 5.5 }; // Default (Chennai)
+
+    if (!inputElem) return coords;
+
+    // 1. PRIORITY: Check if Coords are stored directly on the input (from AutoFill)
+    if (inputElem.hasAttribute("data-lat")) {
+        coords.lat = parseFloat(inputElem.getAttribute("data-lat"));
+        coords.lon = parseFloat(inputElem.getAttribute("data-lon"));
+        coords.tz = parseFloat(inputElem.getAttribute("data-tz"));
+        return coords;
+    }
+
+    const placeStr = inputElem.value.trim();
+    if (!placeStr) return coords;
+
+    // 2. SECONDARY: Check Datalist Options (from Manual Search)
+    const placesList = document.getElementById("placesList");
+    if (placesList) {
+        for (let i = 0; i < placesList.options.length; i++) {
+            // Case-insensitive match
+            if (placesList.options[i].value.toLowerCase() === placeStr.toLowerCase()) {
+                coords.lat = parseFloat(placesList.options[i].getAttribute('data-lat'));
+                coords.lon = parseFloat(placesList.options[i].getAttribute('data-lon'));
+                coords.tz = parseFloat(placesList.options[i].getAttribute('data-tz'));
+                return coords;
+            }
+        }
+    }
+    return coords;
+}
 
 // --- FIXED: Calculate Current Dasha Purely from DOB + Balance (Trusting Chart Text) ---
 function getCurrentDashaDetails(dobStr, balanceStr, chainStr) {
@@ -449,7 +493,7 @@ function getCurrentDashaDetails(dobStr, balanceStr, chainStr) {
 
     // 1. GET STARTING PLANET (From Balance Text or Chain Text)
     let birthPlanet = null;
-    
+
     // Check Balance String first (e.g. "Jupiter 10y 4m")
     let foundKey = Object.keys(DASHA_INPUT_MAP).find(k => balanceStr.toLowerCase().includes(k.toLowerCase()));
     if (foundKey) {
@@ -458,21 +502,21 @@ function getCurrentDashaDetails(dobStr, balanceStr, chainStr) {
 
     // Fallback: Check Chain String (e.g. "Jupiter/Saturn") if Balance has no planet name
     if (!birthPlanet && chainStr) {
-         let firstPart = chainStr.split(/[/\s-]/)[0]; // Get first word
-         let chainKey = Object.keys(DASHA_INPUT_MAP).find(k => firstPart.toLowerCase().includes(k.toLowerCase()));
-         if (chainKey) birthPlanet = DASHA_INPUT_MAP[chainKey];
+        let firstPart = chainStr.split(/[/\s-]/)[0]; // Get first word
+        let chainKey = Object.keys(DASHA_INPUT_MAP).find(k => firstPart.toLowerCase().includes(k.toLowerCase()));
+        if (chainKey) birthPlanet = DASHA_INPUT_MAP[chainKey];
     }
-    
-    if (!birthPlanet) return result; 
+
+    if (!birthPlanet) return result;
 
     // 2. PARSE BALANCE TIME (Years, Months, Days)
     let balY = 0, balM = 0, balD = 0;
     // Extract numbers: 1st=Years, 2nd=Months, 3rd=Days
-    let nums = balanceStr.match(/\d+/g); 
-    if(nums) {
-        if(nums.length >= 1) balY = parseInt(nums[0]);
-        if(nums.length >= 2) balM = parseInt(nums[1]);
-        if(nums.length >= 3) balD = parseInt(nums[2]);
+    let nums = balanceStr.match(/\d+/g);
+    if (nums) {
+        if (nums.length >= 1) balY = parseInt(nums[0]);
+        if (nums.length >= 2) balM = parseInt(nums[1]);
+        if (nums.length >= 3) balD = parseInt(nums[2]);
     }
 
     // 3. CALCULATE END DATE OF FIRST DASHA (Birth Date + Balance)
@@ -483,19 +527,19 @@ function getCurrentDashaDetails(dobStr, balanceStr, chainStr) {
 
     // 4. CYCLE FORWARD TO PRESENT DAY
     let currentIndex = DASHA_ORDER.indexOf(birthPlanet);
-    
+
     // While the "End Date" is in the past, move to the next planet
     while (runningDate < currentDate) {
         currentIndex = (currentIndex + 1) % 9; // Move to next planet
         let nextPlanet = DASHA_ORDER[currentIndex];
-        
+
         // Add full cycle years for the next planet
         runningDate.setFullYear(runningDate.getFullYear() + DASHA_YEARS[nextPlanet]);
     }
 
     // Now 'runningDate' is the actual End Date of the CURRENT period
     let currentDashaName = DASHA_ORDER[currentIndex];
-    
+
     // Identify Next Dasha
     let nextIndex = (currentIndex + 1) % 9;
     let nextDashaName = DASHA_ORDER[nextIndex];
@@ -503,7 +547,7 @@ function getCurrentDashaDetails(dobStr, balanceStr, chainStr) {
     // 5. CALCULATE SANDHI (+/- 6 Months from End Date)
     let sandhiStart = new Date(runningDate);
     sandhiStart.setMonth(sandhiStart.getMonth() - 6);
-    
+
     let sandhiEnd = new Date(runningDate);
     sandhiEnd.setMonth(sandhiEnd.getMonth() + 6);
 
@@ -531,8 +575,10 @@ function runComparison() {
 
     if (!bD || !gD) { alert("Please select dates."); return; }
 
-    const bCoords = getPlaceCoords(bP);
-    const gCoords = getPlaceCoords(gP);
+    // Pass the actual Input Elements so we can read data-lat
+    const bCoords = getPlaceCoords(document.getElementById("cBoyPlace"));
+    const gCoords = getPlaceCoords(document.getElementById("cGirlPlace"));
+
     const bSplit = bD.split("-");
     const bTSplit = bT.split(":");
     const gSplit = gD.split("-");
@@ -576,7 +622,7 @@ function runComparison() {
             }
             document.getElementById("starMatchSummary").innerHTML = `<b>ஆண்:</b> ${d.boy.panchangam.nakshatra}<br><b>பெண்:</b> ${d.girl.panchangam.nakshatra}`;
             document.getElementById("finalScore").innerText = totalScore;
-            
+
             let matches = d.match_report.matches;
             let mid = Math.ceil(matches.length / 2);
             let leftRows = matches.slice(0, mid);
@@ -611,7 +657,7 @@ function runComparison() {
                 isInSandhi: boySandhiCalc.isSandhi,
                 sandhiStart: boySandhiCalc.sandhiRange.split(" to ")[0],
                 sandhiEnd: boySandhiCalc.sandhiRange.split(" to ")[1],
-                friendOrEnemy: "Neutral" 
+                friendOrEnemy: "Neutral"
             };
 
             const girlSandhiData = {
@@ -634,31 +680,31 @@ function runComparison() {
 
 function renderComparisonPanchang(divId, title, data, name) { const p = data.panchangam || {}; const html = `<div style="text-align:center; font-weight:bold; color:#000080; border-bottom:1px solid #aaa; margin-bottom:5px;">${title} ஜாதகம் - ${name || '-'} (${data.place}) - ${p.tamil_date}</div><table class="panchang-table"><tr><td><span class="panchang-label">நட்சத்திரம்:</span> ${p.nakshatra}</td><td><span class="panchang-label">சூரிய உதயம்:</span> ${p.sunrise}</td></tr><tr><td><span class="panchang-label">திதி:</span> ${p.thithi}</td><td><span class="panchang-label">சூரிய அஸ்தமனம்:</span> ${p.sunset}</td></tr><tr><td><span class="panchang-label">யோகம்:</span> ${p.yogam}</td><td><span class="panchang-label">அயனாம்சம்:</span> ${p.ayanamsa}</td></tr><tr><td><span class="panchang-label">கரணம்:</span> ${p.karanam}</td><td><span class="panchang-label">செவ் தோஷம்:</span> ${data.manglik}</td></tr></table>`; document.getElementById(divId).innerHTML = html; }
 
-function renderComparisonChart(gridId, centerId, data, nameOverride) { 
-    const order = ["மீனம்","மேஷம்","ரிஷபம்","மிதுனம்","கும்பம்",null,null,"கடகம்","மகரம்",null,null,"சிம்மம்","தனுசு","விருச்சிகம்","துலாம்","கன்னி"]; const map = {}; let lagna = ""; 
-    data.planets.forEach(p => { 
-        if(!map[p.rasi]) map[p.rasi]=[]; 
-        let c = "black"; if(["சூரியன்","செவ்வாய்"].includes(p.name)) c = "red"; else if(["குரு","புதன்"].includes(p.name)) c = "green"; else if(p.name === "லக்னம்") { c = "green"; lagna = p.rasi; } 
-        let shortName = SHORT_NAMES[p.name] || p.name; if(p.is_retro) shortName = `(${shortName})`; 
-        map[p.rasi].push(`<div class="planet-txt" style="color:${c}">${shortName} <span class="planet-deg">${p.short_deg || ""}</span></div>`); 
-    }); 
-    const el = document.getElementById(gridId); el.innerHTML = ""; 
-    order.forEach(r => { 
-        if(!r) el.innerHTML += `<div style="background:transparent; border:none;"></div>`; 
-        else el.innerHTML += `<div class="si-box">${(map[r]||[]).join("")}</div>`; 
-    }); 
-    const dBal = data.panchangam.dasha_balance || "-"; const dChain = data.panchangam.dasha_chain || "-"; 
-    document.getElementById(centerId).innerHTML = `<div style="margin-bottom:4px;"><b>${nameOverride || "ராசி"}</b></div><div style="font-size:0.9em;">${data.dob} / ${data.time}</div><div style="color:green; font-size:0.9em; margin-bottom:4px;">Lagna: ${lagna}</div><div style="border-top:1px solid #ccc; width:100%; padding-top:4px;"><div style="font-size:0.8em; color:#555; white-space:nowrap;">${dBal}</div><div style="font-size:0.8em; color:#000080; margin-top:2px; font-weight:bold; white-space:nowrap;">${dChain}</div></div>`; 
+function renderComparisonChart(gridId, centerId, data, nameOverride) {
+    const order = ["மீனம்", "மேஷம்", "ரிஷபம்", "மிதுனம்", "கும்பம்", null, null, "கடகம்", "மகரம்", null, null, "சிம்மம்", "தனுசு", "விருச்சிகம்", "துலாம்", "கன்னி"]; const map = {}; let lagna = "";
+    data.planets.forEach(p => {
+        if (!map[p.rasi]) map[p.rasi] = [];
+        let c = "black"; if (["சூரியன்", "செவ்வாய்"].includes(p.name)) c = "red"; else if (["குரு", "புதன்"].includes(p.name)) c = "green"; else if (p.name === "லக்னம்") { c = "green"; lagna = p.rasi; }
+        let shortName = SHORT_NAMES[p.name] || p.name; if (p.is_retro) shortName = `(${shortName})`;
+        map[p.rasi].push(`<div class="planet-txt" style="color:${c}">${shortName} <span class="planet-deg">${p.short_deg || ""}</span></div>`);
+    });
+    const el = document.getElementById(gridId); el.innerHTML = "";
+    order.forEach(r => {
+        if (!r) el.innerHTML += `<div style="background:transparent; border:none;"></div>`;
+        else el.innerHTML += `<div class="si-box">${(map[r] || []).join("")}</div>`;
+    });
+    const dBal = data.panchangam.dasha_balance || "-"; const dChain = data.panchangam.dasha_chain || "-";
+    document.getElementById(centerId).innerHTML = `<div style="margin-bottom:4px;"><b>${nameOverride || "ராசி"}</b></div><div style="font-size:0.9em;">${data.dob} / ${data.time}</div><div style="color:green; font-size:0.9em; margin-bottom:4px;">Lagna: ${lagna}</div><div style="border-top:1px solid #ccc; width:100%; padding-top:4px;"><div style="font-size:0.8em; color:#555; white-space:nowrap;">${dBal}</div><div style="font-size:0.8em; color:#000080; margin-top:2px; font-weight:bold; white-space:nowrap;">${dChain}</div></div>`;
 }
 
 function printComparison() {
     let content = document.getElementById("compResults").innerHTML;
     // Fit to page logic (Zoom factor)
     const fitToPage = document.getElementById("fitToPageCheck").checked;
-    const printZoom = fitToPage ? 0.75 : 1.0; 
-    
+    const printZoom = fitToPage ? 0.75 : 1.0;
+
     // Explicit Chart Size from Slider
-    const printChartSize = UI_SETTINGS.print.chartSize; 
+    const printChartSize = UI_SETTINGS.print.chartSize;
     const printFontSize = 11; // Base font calculation
 
     const fontWeight = UI_SETTINGS.print.isBold ? 'bold' : 'normal';
@@ -682,7 +728,7 @@ function printComparison() {
         
         /* PRINT SETTINGS */
         --tbl-width: ${UI_SETTINGS.print.width}%;
-        --tbl-pad: ${UI_SETTINGS.print.padding}px;
+        --tbl-pad: ${UI_SETTINGS.print.padding}px; /* Default for print */
         --tbl-font: ${UI_SETTINGS.print.font}px;
         
         /* HEADER & FOOTER */
@@ -702,11 +748,11 @@ function printComparison() {
         zoom: ${printZoom};
     }
 
-    .charts-flex-container { display: flex; justify-content: space-between; flex-wrap: nowrap; gap: 10px; }
+    .charts-flex-container { display: flex; justify-content: space-between; flex-wrap: nowrap; gap: 10px; margin-bottom: 5px; }
     .chart-block { flex: 0 0 48%; max-width: 48%; }
-    .panchang-box { border: 1px solid #999; background: #ffffe0 !important; padding: 3px; margin-bottom: 3px; font-size: var(--print-font-size); font-weight: var(--print-weight); }
+    .panchang-box { border: 1px solid #999; background: #ffffe0 !important; padding: 2px; margin-bottom: 2px; font-size: var(--print-font-size); font-weight: var(--print-weight); min-height: 0 !important; }
     .panchang-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    .panchang-table td { border: 1px solid #444; padding: 2px; font-size: var(--print-font-size); white-space: nowrap; overflow: hidden; font-weight: var(--print-weight); }
+    .panchang-table td { border: 1px solid #444; padding: 1px 3px; font-size: var(--print-font-size); white-space: nowrap; overflow: hidden; font-weight: var(--print-weight); height: auto !important; }
     .chart-wrapper { display: flex; justify-content: center; }
 
     .chart-container { border: 2px solid #000080; width: var(--print-chart-dim) !important; height: var(--print-chart-dim) !important; position: relative; background: #fff; }
@@ -720,26 +766,35 @@ function printComparison() {
         font-size: var(--header-size); 
         text-align: center; 
         color: #000080; 
-        margin: 5px 0; 
+        margin: 4px 0 2px 0; 
         display: ${headerDisplay};
     }
     
-    table.resize-target { width: var(--tbl-width) !important; font-size: var(--tbl-font) !important; border-collapse: collapse; margin: 5px 0; }
+    /* --- COMPACT TABLE STYLES FOR PRINT --- */
+    .results-grid { margin-top: 5px !important; padding: 0 !important; border: none !important; }
+    .left-panel, .right-panel { padding: 0 !important; margin: 0 !important; border: none !important; }
+    
+    table.resize-target { width: var(--tbl-width) !important; font-size: var(--tbl-font) !important; border-collapse: collapse; margin: 2px 0 !important; }
     table.resize-target th, table.resize-target td { 
-        padding-top: var(--tbl-pad) !important; 
-        padding-bottom: var(--tbl-pad) !important; 
+        padding-top: 1px !important;    /* FORCE TIGHT PADDING */
+        padding-bottom: 1px !important; /* FORCE TIGHT PADDING */
+        padding-left: 3px !important;
+        padding-right: 3px !important;
         border: 1px solid #999; 
-        font-weight: var(--print-weight); 
+        font-weight: var(--print-weight);
+        line-height: 1.2;
     }
+
+    #planetRelTable td, .sandhi-table td { font-size: 10px !important; }
 
     @media print {
         .print-footer { 
-            position: fixed; bottom: 5mm; left: 0; right: 0; text-align: center; 
+            position: fixed; bottom: 3mm; left: 0; right: 0; text-align: center; 
             color: #444; opacity: 0.95; z-index: 9999; 
         }
         .print-footer img { 
             height: var(--footer-logo-height); 
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             display: ${footerLogoDisplay};
         }
         .print-footer div {
@@ -865,4 +920,46 @@ function renderDasaSandhiTable(containerId, boyData, girlData) {
     `;
 
     document.getElementById(containerId).innerHTML = tableHTML;
+}
+
+// --- FIXED: Use PUBLIC API for Place Search (No Backend Required) ---
+function searchCity(input) {
+    // Clear old coords so we don't rely on stale data
+    input.removeAttribute("data-lat");
+    input.removeAttribute("data-lon");
+    input.removeAttribute("data-tz");
+
+    const val = input.value;
+    if (val.length < 3) return;
+
+    // USE OPEN-METEO API (Free, No Key, No Backend Required)
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(val)}&count=5&language=en&format=json`;
+
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            const dl = document.getElementById("placesList");
+            dl.innerHTML = "";
+            if (data.results) {
+                data.results.forEach(city => {
+                    const opt = document.createElement("option");
+                    // Format Label: "Chennai, Tamil Nadu, India"
+                    const country = city.country || "";
+                    const region = city.admin1 || "";
+                    let displayName = `${city.name}`;
+                    if (region) displayName += `, ${region}`;
+                    if (country) displayName += `, ${country}`;
+
+                    opt.value = displayName; // This is what users see in the list
+
+                    // Store coords for our calculation
+                    opt.setAttribute("data-lat", city.latitude);
+                    opt.setAttribute("data-lon", city.longitude);
+                    opt.setAttribute("data-tz", 5.5); // Default to India Standard Time (Safe fallback)
+
+                    dl.appendChild(opt);
+                });
+            }
+        })
+        .catch(e => console.error("Place search failed", e));
 }
